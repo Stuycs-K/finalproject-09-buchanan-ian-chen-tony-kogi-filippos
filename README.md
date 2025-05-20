@@ -1,9 +1,9 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/am3xLbu5)
-# PROJECT NAME HERE (CHANGE THIS!!!!!)
+# sha256 encoder 
  
-### GROUP NAME HERE (CHANGE THIS!!!!!)
+### Spider Monkeys
 
-Group Members Here (CHANGE THIS!!!!!)
+Tony Chen, Filippos Kogiantis, Ian Buchanan 
        
 ### Project Description:
 
