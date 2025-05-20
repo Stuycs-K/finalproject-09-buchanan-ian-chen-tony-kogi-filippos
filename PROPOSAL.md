@@ -2,11 +2,11 @@
 
 ## Group Members:
 
-names here.(CHANGE THIS!!!!!)
+Ian Buchanan, Tony Chen, Filippos Kogiantis
        
 # Intentions:
 
-A statement of the problem you are solving and/or a high level description of the project. (CHANGE THIS!!!!!)
+We seek to implement and explain the SHA256 algorithm.
     
 # Intended usage:
 
