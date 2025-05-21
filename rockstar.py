@@ -14,7 +14,18 @@ def generate_tokens(code):
         # if word == "something":
             # do something with potentially next word
 
+	# booleans
+	if word in ('true','right','ok','yes'):
+		tokens.append({"action":"boolean", "value":"true"})
+	if word in ('wrong','no','lies','false'):
+		tokens.append({"action":"boolean", "value":"false"})
 
+	# functions
+
+
+	# null
+	if word in ("nothing", "nowhere", "nobody", "gone", "null"):
+		tokens.append({"action":"nullType", "value":"null"}) 
 
         i += len + 1
 

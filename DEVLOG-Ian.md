@@ -2,10 +2,7 @@
 
 This document must be updated daily every time you finish a work session.
 
-## Dave Kim CHANGE THE NAME FOOL!
+## Ian Buchanan
 
-### 2024-01-02 - Brief description
-Expanded description including how much time was spent on task.
-
-### 2024-01-03 - Brief description
-
+### 2024-05-21 Start defining variables in tokenization 
+Began defining variables and their valid aliases such as booleans and the null type in the tokenization function. 
