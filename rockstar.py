@@ -10,6 +10,35 @@ def process_program(program):
         trees.append(generate_trees(i))
     return trees
 
+def check_for_ops_in_expression(expression):
+    quotes = []
+    i = 0
+    while expression.find("\"", i) != -1:
+        quotes.append(expression.find("\"", i))
+        i += expression.find("\"", i) + 1
+    return quotes
+
+def handle_print_expression(expression):
+    if expression.count("\"") == 2:
+        return expression[1:-1]
+    elif expression in ('true','right','ok','yes'):
+        return True
+    elif expression in ('wrong','no','lies','false'):
+        return False
+    elif expression in ("nothing", "nowhere", "nobody", "gone", "null"):
+        return None
+    elif expression in ("empty", "silence"):
+        return ""
+    else:
+        try: 
+            return float(expression)
+        except ValueError:
+            pass
+            # if ops in expression:
+                # do stuff
+            # else:
+                # print("handle poetic numbers")
+
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
@@ -32,7 +61,31 @@ def generate_trees(statement):
             d["value"] = e
         return d
     # if word in ('put'):
-        
+    #     d = {"action":"assign_variable", "value":["var_name", "value"]}
+    #     i += len(word) + 1
+
+    #     expression_end = statement.find("into")
+    #     expression = statement[i:expression_end]
+
+    #     if statement[i] == "\"":
+    #         endquote = statement[i+1:].find("\"")
+    #         d["value"][1] = statement[i:endquote]
+    #     elif word in ('true','right','ok','yes'):
+    #         d["value"][1] = True
+    #     elif word in ('wrong','no','lies','false'):
+    #         d["value"][1] = False
+    #     elif word in ("nothing", "nowhere", "nobody", "gone", "null"):
+    #         d["value"][1] = None
+    #     elif word in ("empty", "silence"):
+    #         d["value"][1] = ""
+    #     else:
+    #         try: 
+    #             d["value"][1] = float(word)
+    #         except ValueError:
+    #             print("handle poetic numbers")
+    #     return d
+
+
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
         if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
             if word in ("a", "an", "the", "my", "your", "our"):
@@ -44,7 +97,9 @@ def generate_trees(statement):
 
             i += len(word) + 1
 
-            i += len(word) + 2
+            word = get_word(statement, i)
+
+            i += len(word) + 1
             if statement[i] == "\"":
                 d["value"][1] = statement[i:][1:-1]
             elif statement[i:] in ('true','right','ok','yes'):
@@ -64,5 +119,7 @@ def generate_trees(statement):
             return d
 
 
-print(process_program("print cheese. b is empty"))
+# print(process_program("print cheese. b is empty"))
 # float("sada")
+
+print(check_for_ops_in_expression("\"donkey\" \"dick"))
