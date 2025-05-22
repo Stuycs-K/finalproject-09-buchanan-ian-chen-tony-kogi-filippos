@@ -8,5 +8,7 @@ This document must be updated daily every time you finish a work session.
 I coded a preprocessing function and a function that gets the next word in the code. 
 I also started writing the main loop function that tokenizes everything called generate_tokens().
 
-### 2024-01-03 - Brief description
+### 2024-05-21 - Add token generation for printing and variable assigning
+I created if statements that would convert if statements and variable assigning into dictionaries that 
+could be interpreted later. 
 
