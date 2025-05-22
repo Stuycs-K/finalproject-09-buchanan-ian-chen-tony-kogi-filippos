@@ -15,7 +15,7 @@ def check_for_ops_in_expression(expression):
     i = 0
     while expression.find("\"", i) != -1:
         quotes.append(expression.find("\"", i))
-        i += expression.find("\"", i) + 1
+        i = expression.find("\"", i) + 1
     return quotes
 
 def handle_print_expression(expression):
@@ -44,6 +44,8 @@ def get_word(statement, index):
     end = statement.find(" ")
     return statement[index:end]
 
+# def get_next_word(statement, index, currWordLength): 
+
 def generate_trees(statement):
     i = 0
     word = get_word(statement, i).lower()
@@ -60,10 +62,36 @@ def generate_trees(statement):
             e = {"action":"get_variable", "value": statement[i:]}
             d["value"] = e
         return d
-    # if word in ('put'):
-    #     d = {"action":"assign_variable", "value":["var_name", "value"]}
-    #     i += len(word) + 1
 
+    quotes = check_for_ops_in_expression(statement)
+    if word in ('put'):
+        d = {"action":"assign_variable", "value":["var_name", "value"]}
+        i += len(word) + 1
+        word = get_word(statement, i) 
+        if statement[i] == "\"":
+            endquote = quotes[quotes.index(i) + 1]  
+            d["value"][1] = statement[i+1:endquote]
+        elif word in ('true','right','ok','yes'):
+            d["value"][1] = True
+        elif word in ('wrong','no','lies','false'):
+            d["value"][1] = False
+        elif word in ("nothing", "nowhere", "nobody", "gone", "null"):
+            d["value"][1] = None
+        elif word in ("empty", "silence"):
+            d["value"][1] = ""
+        else:
+            try: 
+                d["value"][1] = float(word)
+            except ValueError:
+                print("handle poetic numbers")
+        i += len(word) + 1 
+        word = get_word(statement, i) 
+        if word not in ('into'): 
+            print("into expected as next word") 
+        i += len(word) + 1 
+        word = get_word(statement, i) 
+        d["value"][0] = word 
+        
     #     expression_end = statement.find("into")
     #     expression = statement[i:expression_end]
 
