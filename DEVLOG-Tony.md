@@ -12,3 +12,5 @@ I also started writing the main loop function that tokenizes everything called g
 I created if statements that would convert if statements and variable assigning into dictionaries that 
 could be interpreted later. 
 
+### 2024-05-22 - Worked on more variable assignments
+Started writing code for "Put".
