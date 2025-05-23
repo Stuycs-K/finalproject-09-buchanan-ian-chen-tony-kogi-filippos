@@ -30,7 +30,7 @@ def handle_print_expression(expression):
     elif expression in ("empty", "silence"):
         return ""
     else:
-        try: 
+        try:
             return float(expression)
         except ValueError:
             pass
@@ -48,7 +48,7 @@ def generate_trees(statement):
     i = 0
     word = get_word(statement, i).lower()
 
-    if word in ('print', 'say', 'shout', 'scream', 'whisper'): 
+    if word in ('print', 'say', 'shout', 'scream', 'whisper'):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
@@ -79,7 +79,7 @@ def generate_trees(statement):
     #     elif word in ("empty", "silence"):
     #         d["value"][1] = ""
     #     else:
-    #         try: 
+    #         try:
     #             d["value"][1] = float(word)
     #         except ValueError:
     #             print("handle poetic numbers")
@@ -96,12 +96,12 @@ def generate_trees(statement):
         val = get_word(statement,i)
         d = {"action":"assign_variable", "value":[arg, val]}
         return d
-        
+
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
-        if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
+        if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement:
             if word in ("a", "an", "the", "my", "your", "our"):
                 i += len(word) + 1
-            
+
             word = get_word(statement, i)
 
             d = {"action":"assign_variable", "value":[word[:-3] if word[-3:] in ("'re", "'s") else word, "value"]}
@@ -122,15 +122,15 @@ def generate_trees(statement):
             elif statement[i:] in ("empty", "silence"):
                 d["value"][1] = ""
             else:
-                try: 
+                try:
                     d["value"][1] = float(statement[i:])
                 except ValueError:
                     print("handle poetic numbers")
-                
+
             return d
 
 
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-print(check_for_ops_in_expression("\"donkey\" \"dick"))
+print(check_for_ops_in_expression("\"donkey\" \"doop"))
