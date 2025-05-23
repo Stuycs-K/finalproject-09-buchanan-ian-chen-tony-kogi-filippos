@@ -10,7 +10,7 @@ def process_program(program):
         trees.append(generate_trees(i))
     return trees
 
-def check_for_ops_in_expression(expression):
+def find_quotes_in_expression(expression):
     quotes = []
     i = 0
     while expression.find("\"", i) != -1:
@@ -18,7 +18,21 @@ def check_for_ops_in_expression(expression):
         i += expression.find("\"", i) + 1
     return quotes
 
-def handle_print_expression(expression):
+def find_words_in_expression(expression, words):
+    locs = []
+    i = 0
+    #use regex search and change the expression in a loop way
+    while expression.find("\"", i) != -1:
+        quotes.append(expression.find("\"", i))
+        i += expression.find("\"", i) + 1
+    return quotes
+
+def contains(string, list):
+    for i in list:
+        if string.find(i) != -1:
+            return True
+
+def handle_expression(expression):
     if expression.count("\"") == 2:
         return expression[1:-1]
     elif expression in ('true','right','ok','yes'):
@@ -33,9 +47,16 @@ def handle_print_expression(expression):
         try:
             return float(expression)
         except ValueError:
-            pass
-            # if ops in expression:
-                # do stuff
+            if expression.count("\"") > 2:
+                quotes = find_quotes_in_expression(expression)
+                pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
+            elif contains(expression, ("*", "times", "of")):
+                d = {"action":"multiply", "value":[i.strip() for i in expression.split("*")]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("/", "over", "between")):
+
             # else:
                 # print("handle poetic numbers")
 
@@ -133,4 +154,6 @@ def generate_trees(statement):
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-print(check_for_ops_in_expression("\"donkey\" \"doop"))
+# print(find_quotes_in_expression("\"donkey\" \"doop"))
+
+print(handle_expression("1 * 2"))
