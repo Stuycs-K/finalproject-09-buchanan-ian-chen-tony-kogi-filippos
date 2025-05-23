@@ -42,6 +42,8 @@ def handle_print_expression(expression):
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
+    if end == -1:
+       return statement 
     return statement[:end]
 
 # def get_next_word(statement, index, currWordLength): 
@@ -115,20 +117,22 @@ def generate_trees(statement):
     #     return d
 
     elif (word == "let"):
-        i = len(word)
+        i = len(word) + 1
         arg = ""
         word = get_word(statement,i)
-        print(word)
+        # print(word)
         while (word != "be" and i < len(statement)):
             arg += word
             i += len(word) + 1
-            print(word)
+            word = get_word(statement,i)
+            # print(word,i)
         i += len(word) + 1
-        print(word)
+        # print(word)
         if (word != "be"):
             raise Exception("\'be\' is required when using \'let\'")
-        val = get_word(statement,i)
-        d = {"action":"assign_variable", "value":[arg, val]}
+        word = get_word(statement,i)
+        # print(word)
+        d = {"action":"assign_variable", "value":[arg, word]}
         return d
         
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
@@ -169,8 +173,8 @@ def generate_trees(statement):
 
 # print(check_for_ops_in_expression("\"donkey\" \"dick"))
 
-# print(generate_trees("let him be me"))
+print(generate_trees("let him be me too"))
 
-print(get_word("we are done", 3))
-d = generate_trees("put true into my var")
-print(d) 
+# print(get_word("let him be me", 11))
+# d = generate_trees("put true into my var")
+# print(d)
