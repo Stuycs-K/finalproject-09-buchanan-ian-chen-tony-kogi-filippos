@@ -113,7 +113,18 @@ def generate_trees(statement):
     #             print("handle poetic numbers")
     #     return d
 
-
+    elif (word == "let"):
+        i = len(word) + 1
+        arg = ""
+        word = get_word(statement,i)
+        while (word != "be"):
+            arg += word
+            i += len(word) + 1
+        i += len(word) + 1
+        val = get_word(statement,i)
+        d = {"action":"assign_variable", "value":[arg, val]}
+        return d
+        
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
         if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
             if word in ("a", "an", "the", "my", "your", "our"):
