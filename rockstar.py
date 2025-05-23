@@ -86,13 +86,18 @@ def generate_trees(statement):
     #     return d
 
     elif (word == "let"):
-        i = len(word) + 1
+        i = len(word)
         arg = ""
         word = get_word(statement,i)
-        while (word != "be"):
+        print(word)
+        while (word != "be" and i < len(statement)):
             arg += word
             i += len(word) + 1
+            print(word)
         i += len(word) + 1
+        print(word)
+        if (word != "be"):
+            raise Exception("\'be\' is required when using \'let\'")
         val = get_word(statement,i)
         d = {"action":"assign_variable", "value":[arg, val]}
         return d
@@ -133,4 +138,8 @@ def generate_trees(statement):
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-print(check_for_ops_in_expression("\"donkey\" \"dick"))
+# print(check_for_ops_in_expression("\"donkey\" \"dick"))
+
+# print(generate_trees("let him be me"))
+
+print(get_word("we are done", 3))
