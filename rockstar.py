@@ -68,6 +68,8 @@ def generate_trees(statement):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
         word = get_word(statement, i) 
+        
+        # replace with handle_expression() 
         if statement[i] == "\"":
             endquote = quotes[quotes.index(i) + 1]  
             d["value"][1] = statement[i+1:endquote]
@@ -84,6 +86,7 @@ def generate_trees(statement):
                 d["value"][1] = float(word)
             except ValueError:
                 print("handle poetic numbers")
+                
         i += len(word) + 1 
         word = get_word(statement, i) 
         if word not in ('into'): 
