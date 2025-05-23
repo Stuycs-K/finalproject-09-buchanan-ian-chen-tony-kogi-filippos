@@ -42,7 +42,7 @@ def handle_print_expression(expression):
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
-    return statement[index:end]
+    return statement[:end]
 
 # def get_next_word(statement, index, currWordLength): 
 
@@ -89,8 +89,9 @@ def generate_trees(statement):
         if word not in ('into'): 
             print("into expected as next word") 
         i += len(word) + 1 
-        word = get_word(statement, i) 
+        word = statement[i:]  
         d["value"][0] = word 
+        return d 
         
     #     expression_end = statement.find("into")
     #     expression = statement[i:expression_end]
@@ -161,4 +162,7 @@ def generate_trees(statement):
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-print(check_for_ops_in_expression("\"donkey\" \"dick"))
+# print(check_for_ops_in_expression("\"donkey\" \"dick"))
+
+d = generate_trees("put true into my var")
+print(d) 
