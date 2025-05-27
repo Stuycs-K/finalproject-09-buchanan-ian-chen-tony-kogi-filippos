@@ -10,3 +10,6 @@ We looked at each of our project ideas and did research on how we would implemen
 ### 2025-05-22 - wrote interpreter for 'let'
 Looked over some code that Tony had written, and spent time to understand how 
 the interpreter would work. I only had difficult understanding the dictionary structure.
+
+### 2025-05-23 - finished let
+found problems with my earlier version, and the find_word() function. Fixed that qwith ian.
