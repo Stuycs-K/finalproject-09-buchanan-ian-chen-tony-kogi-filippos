@@ -1,5 +1,7 @@
 import re
 
+FLOW_CONTROL = ("if", "while", "until")
+
 def process_program(program):
     trees = []
     program = re.sub(r"(?![A-Z]\.)(([a-zA-Z\.]{1,})(\.|\?|\!|\;|\n))",r"\2\n", program)
@@ -39,6 +41,9 @@ def handle_print_expression(expression):
             # else:
                 # print("handle poetic numbers")
 
+def parseConditional(statement, i): 
+    
+
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
@@ -51,6 +56,7 @@ def get_word(statement, index):
 def generate_trees(statement):
     i = 0
     word = get_word(statement, i).lower()
+    word = word.replace(",", "")
 
     if word in ('print', 'say', 'shout', 'scream', 'whisper'): 
         d = {"action":"print", "value":""}
@@ -97,7 +103,7 @@ def generate_trees(statement):
         word = statement[i:]  
         d["value"][0] = word 
         return d 
-        
+    
     #     expression_end = statement.find("into")
     #     expression = statement[i:expression_end]
 
@@ -137,7 +143,20 @@ def generate_trees(statement):
         # print(word)
         d = {"action":"assign_variable", "value":[arg, word]}
         return d
+
+    elif word in ("if", "while", "until"): 
+        d = {"action":"flow control", "value": [word, "expression"]} 
+        i += len(word) + 1 
+        word = get_word(statement, i) 
+        next_d = parseConditional(statement, i) 
+        d["value"][1] = next_d 
+        return d 
+
+    elif word in ("oh", "yeah", "baby"): 
+        d = {"action":"end flow", "value": word}
+        return d 
         
+    
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
         if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
             if word in ("a", "an", "the", "my", "your", "our"):
