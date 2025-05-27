@@ -138,8 +138,38 @@ def generate_trees(statement):
         d = {"action":"assign_variable", "value":[arg, word]}
         return d
         
+    elif " at " in statement:
+        arr_name = ""
+        arr_name += word
+        print(word)
+        i += len(word) + 1
+        word = get_word(statement,i)
+        while word != "at" and i < len(statement):
+            arr_name += " " + word
+            print(word)
+            i += len(word) + 1
+            word = get_word(statement,i)
+        i += len(word) + 1
+        word = get_word(statement,i)
+        print(word)
+        index = word
+        i += len(word) + 1
+        word = get_word(statement,i)
+        if word == "is":
+            i += len(word) + 1
+            val = statement[i:]
+        else:
+            raise Exception("\'is\' is required when using \'at\'")
+
+                    
+        d = {"action":"assign_array", "value":[arr_name,index,val]}
+        return d;
+        
+
+
+    
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
-        if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
+        if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement or " 's " in statement or " 're " in statement: 
             if word in ("a", "an", "the", "my", "your", "our"):
                 i += len(word) + 1
             
@@ -171,13 +201,35 @@ def generate_trees(statement):
             return d
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
 # print(check_for_ops_in_expression("\"donkey\" \"dick"))
 
-print(generate_trees("let him be me too"))
+print(generate_trees("M at 0 is me"))
 
 # print(get_word("let him be me", 11))
 # d = generate_trees("put true into my var")
 # print(d)
+
+
+
+
