@@ -1,6 +1,7 @@
 import re
 
 FLOW_CONTROL = ("if", "while", "until")
+FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
 
 def process_program(program):
     trees = []
@@ -41,15 +42,57 @@ def handle_print_expression(expression):
             # else:
                 # print("handle poetic numbers")
 
+def booleanParse(word): 
+    if word in FALSY: 
+        return False 
+    else: 
+        return True 
+
 def parseConditional(statement, i): 
-    
+    d = {"conditional": "operator", "value": "evaluation_expression"}
+    tokens = []
+    word = get_word(statement, i) 
+    i += len(word) + 1 
+    while i < len(word): 
+        if word in FALSY: 
+            tokens.append(False) 
+        elif word in ("not"): 
+            word = get_word(statement, i) 
+            i += len(word) + 1 
+            tokens.append(booleanParse(word))
+        elif word[:3] == "non": 
+            nonList = word.split("-") 
+            if nonList[-1] != "non": 
+                eval = nonList[-1] 
+                nonList = nonList[:-1] 
+                if len(nonList) % 2 == 0: 
+                    tokens.append(booleanParse(eval))
+                else: 
+                    tokens.append(not booleanParse(eval)) 
+            else: 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if len(nonList) % 2 == 0: 
+                    tokens.append(booleanParse(eval))
+                else: 
+                    tokens.append(not booleanParse(eval))   
+        ### binary operators 
+        #elif word == "or":
+
+        #elif word == "and": 
+
+        #elif word == 
+
+        else: 
+            d["value"].append(True) 
+    return d
 
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
     if end == -1:
        return statement 
-    return statement[:end]
+    return statement[:end].lower() 
 
 # def get_next_word(statement, index, currWordLength): 
 
