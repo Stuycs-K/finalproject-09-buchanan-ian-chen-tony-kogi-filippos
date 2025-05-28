@@ -13,7 +13,7 @@ def process_program(program):
         trees.append(generate_trees(i))
     return trees
 
-def check_for_ops_in_expression(expression):
+def find_quotes_in_expression(expression):
     quotes = []
     i = 0
     while expression.find("\"", i) != -1:
@@ -21,7 +21,21 @@ def check_for_ops_in_expression(expression):
         i = expression.find("\"", i) + 1
     return quotes
 
-def handle_print_expression(expression):
+def find_words_in_expression(expression, words):
+    locs = []
+    i = 0
+    #use regex search and change the expression in a loop way
+    while expression.find("\"", i) != -1:
+        quotes.append(expression.find("\"", i))
+        i += expression.find("\"", i) + 1
+    return quotes
+
+def contains(string, list):
+    for i in list:
+        if string.find(i) != -1:
+            return True
+
+def handle_expression(expression):
     if expression.count("\"") == 2:
         return expression[1:-1]
     elif expression in ('true','right','ok','yes'):
@@ -36,11 +50,29 @@ def handle_print_expression(expression):
         try:
             return float(expression)
         except ValueError:
-            pass
-            # if ops in expression:
-                # do stuff
-            # else:
-                # print("handle poetic numbers")
+            if expression.count("\"") > 2:
+                quotes = find_quotes_in_expression(expression)
+                pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
+            elif contains(expression, ("+", "with", "plus")):
+                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and not (i in ('with', 'plus'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("-", "minus", "without")):
+                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and not (i in ('minus', 'without'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("*", "times", "of")):
+                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and not (i in ('times', 'of'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("/", "over", "between")):
+                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
 
 def booleanParse(word):
     if word in FALSY:
@@ -256,7 +288,6 @@ def generate_trees(statement):
                     d["value"][1] = float(statement[i:])
                 except ValueError:
                     print("handle poetic numbers")
-
             return d
 
 
@@ -281,6 +312,7 @@ def generate_trees(statement):
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
+<<<<<<< HEAD
 # print(check_for_ops_in_expression("\"donkey\" \"doop"))
 
 print(generate_trees("M at 0 is me"))
@@ -288,3 +320,8 @@ print(generate_trees("M at 0 is me"))
 # print(get_word("let him be me", 11))
 # d = generate_trees("put true into my var")
 # print(d)
+=======
+# print(find_quotes_in_expression("\"donkey\" \"doop"))
+# print(re.split("\*|(times)|(of)","1 * 2 times 3"))
+print(handle_expression("1 * 2 times 3 + 5 / 3 - 10"))
+>>>>>>> Tony
