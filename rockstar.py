@@ -50,15 +50,26 @@ def handle_expression(expression):
             if expression.count("\"") > 2:
                 quotes = find_quotes_in_expression(expression)
                 pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
+            elif contains(expression, ("+", "with", "plus")):
+                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and not (i in ('with', 'plus'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("-", "minus", "without")):
+                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and not (i in ('minus', 'without'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
             elif contains(expression, ("*", "times", "of")):
-                d = {"action":"multiply", "value":[i.strip() for i in expression.split("*")]}
+                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and not (i in ('times', 'of'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("/", "over", "between")):
-
-            # else:
-                # print("handle poetic numbers")
+                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
 
 def get_word(statement, index):
     statement = statement[index:]
@@ -147,7 +158,6 @@ def generate_trees(statement):
                     d["value"][1] = float(statement[i:])
                 except ValueError:
                     print("handle poetic numbers")
-
             return d
 
 
@@ -155,5 +165,5 @@ def generate_trees(statement):
 # float("sada")
 
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
-
-print(handle_expression("1 * 2"))
+# print(re.split("\*|(times)|(of)","1 * 2 times 3"))
+print(handle_expression("1 * 2 times 3 + 5 / 3 - 10"))
