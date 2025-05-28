@@ -146,7 +146,7 @@ def generate_trees(statement):
             d["value"] = e
         return d
 
-    quotes = check_for_ops_in_expression(statement)
+    quotes = find_quotes_in_expression(statement)
     if word in ('put'):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
@@ -312,7 +312,6 @@ def generate_trees(statement):
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-<<<<<<< HEAD
 # print(check_for_ops_in_expression("\"donkey\" \"doop"))
 
 print(generate_trees("M at 0 is me"))
@@ -320,8 +319,6 @@ print(generate_trees("M at 0 is me"))
 # print(get_word("let him be me", 11))
 # d = generate_trees("put true into my var")
 # print(d)
-=======
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
 print(handle_expression("1 * 2 times 3 + 5 / 3 - 10"))
->>>>>>> Tony
