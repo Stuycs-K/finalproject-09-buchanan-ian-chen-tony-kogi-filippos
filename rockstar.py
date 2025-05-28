@@ -1,7 +1,7 @@
 import re
 
 FLOW_CONTROL = ("if", "while", "until")
-FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
+FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
 
 def process_program(program):
     trees = []
@@ -13,7 +13,7 @@ def process_program(program):
         trees.append(generate_trees(i))
     return trees
 
-def check_for_ops_in_expression(expression):
+def find_quotes_in_expression(expression):
     quotes = []
     i = 0
     while expression.find("\"", i) != -1:
@@ -21,7 +21,21 @@ def check_for_ops_in_expression(expression):
         i = expression.find("\"", i) + 1
     return quotes
 
-def handle_print_expression(expression):
+def find_words_in_expression(expression, words):
+    locs = []
+    i = 0
+    #use regex search and change the expression in a loop way
+    while expression.find("\"", i) != -1:
+        quotes.append(expression.find("\"", i))
+        i += expression.find("\"", i) + 1
+    return quotes
+
+def contains(string, list):
+    for i in list:
+        if string.find(i) != -1:
+            return True
+
+def handle_expression(expression):
     if expression.count("\"") == 2:
         return expression[1:-1]
     elif expression in ('true','right','ok','yes'):
@@ -33,47 +47,70 @@ def handle_print_expression(expression):
     elif expression in ("empty", "silence"):
         return ""
     else:
-        try: 
+        try:
             return float(expression)
         except ValueError:
-            pass
-            # if ops in expression:
-                # do stuff
-            # else:
-                # print("handle poetic numbers")
+            if expression.count("\"") > 2:
+                quotes = find_quotes_in_expression(expression)
+                pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
+            elif contains(expression, ("+", "with", "plus")):
+                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and not (i in ('with', 'plus'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("-", "minus", "without")):
+                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and not (i in ('minus', 'without'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("*", "times", "of")):
+                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and not (i in ('times', 'of'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
+            elif contains(expression, ("/", "over", "between")):
+                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
+                for i in range(len(d["value"])):
+                    d["value"][i] = handle_expression(d["value"][i])
+                return d
 
-def booleanParse(word): 
-    if word in FALSY: 
-        return False 
-    else: 
-        return True 
+def booleanParse(word):
+    if word in FALSY:
+        return False
+    else:
+        return True
 
+<<<<<<< HEAD
 def conditionalToArray(statement, i): 
+=======
+def parseConditional(statement, i):
+>>>>>>> refs/remotes/origin/main
     d = {"conditional": "operator", "value": "evaluation_expression"}
     tokens = []
-    word = get_word(statement, i) 
-    i += len(word) + 1 
-    while i < len(word): 
-        if word in FALSY: 
-            tokens.append(False) 
-        elif word in ("not"): 
-            word = get_word(statement, i) 
-            i += len(word) + 1 
+    word = get_word(statement, i)
+    i += len(word) + 1
+    while i < len(word):
+        if word in FALSY:
+            tokens.append(False)
+        elif word in ("not"):
+            word = get_word(statement, i)
+            i += len(word) + 1
             tokens.append(booleanParse(word))
-        elif word[:3] == "non": 
-            nonList = word.split("-") 
-            if nonList[-1] != "non": 
-                eval = nonList[-1] 
-                nonList = nonList[:-1] 
-                if len(nonList) % 2 == 0: 
+        elif word[:3] == "non":
+            nonList = word.split("-")
+            if nonList[-1] != "non":
+                eval = nonList[-1]
+                nonList = nonList[:-1]
+                if len(nonList) % 2 == 0:
                     tokens.append(booleanParse(eval))
-                else: 
-                    tokens.append(not booleanParse(eval)) 
-            else: 
-                word = get_word(statement, i) 
-                i += len(word) + 1 
-                if len(nonList) % 2 == 0: 
+                else:
+                    tokens.append(not booleanParse(eval))
+            else:
+                word = get_word(statement, i)
+                i += len(word) + 1
+                if len(nonList) % 2 == 0:
                     tokens.append(booleanParse(eval))
+<<<<<<< HEAD
                 else: 
                     tokens.append(not booleanParse(eval))   
         ### binary operators 
@@ -129,22 +166,36 @@ def conditionalToArray(statement, i):
 
 #def parseConditionalArray(tokens): 
 #if either value is string, they are coerced to string, if both are numerical they are compared as that 
+=======
+                else:
+                    tokens.append(not booleanParse(eval))
+        ### binary operators
+        #elif word == "or":
+
+        #elif word == "and":
+
+        #elif word ==
+
+        else:
+            d["value"].append(True)
+    return d
+>>>>>>> refs/remotes/origin/main
 
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
     if end == -1:
-       return statement 
-    return statement[:end].lower() 
+       return statement
+    return statement[:end].lower()
 
-# def get_next_word(statement, index, currWordLength): 
+# def get_next_word(statement, index, currWordLength):
 
 def generate_trees(statement):
     i = 0
     word = get_word(statement, i).lower()
     word = word.replace(",", "")
 
-    if word in ('print', 'say', 'shout', 'scream', 'whisper'): 
+    if word in ('print', 'say', 'shout', 'scream', 'whisper'):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
@@ -157,15 +208,15 @@ def generate_trees(statement):
             d["value"] = e
         return d
 
-    quotes = check_for_ops_in_expression(statement)
+    quotes = find_quotes_in_expression(statement)
     if word in ('put'):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
-        word = get_word(statement, i) 
-        
-        # replace with handle_expression() 
+        word = get_word(statement, i)
+
+        # replace with handle_expression()
         if statement[i] == "\"":
-            endquote = quotes[quotes.index(i) + 1]  
+            endquote = quotes[quotes.index(i) + 1]
             d["value"][1] = statement[i+1:endquote]
         elif word in ('true','right','ok','yes'):
             d["value"][1] = True
@@ -176,20 +227,20 @@ def generate_trees(statement):
         elif word in ("empty", "silence"):
             d["value"][1] = ""
         else:
-            try: 
+            try:
                 d["value"][1] = float(word)
             except ValueError:
                 print("handle poetic numbers")
-                
-        i += len(word) + 1 
-        word = get_word(statement, i) 
-        if word not in ('into'): 
-            print("into expected as next word") 
-        i += len(word) + 1 
-        word = statement[i:]  
-        d["value"][0] = word 
-        return d 
-    
+
+        i += len(word) + 1
+        word = get_word(statement, i)
+        if word not in ('into'):
+            print("into expected as next word")
+        i += len(word) + 1
+        word = statement[i:]
+        d["value"][0] = word
+        return d
+
     #     expression_end = statement.find("into")
     #     expression = statement[i:expression_end]
 
@@ -205,7 +256,7 @@ def generate_trees(statement):
     #     elif word in ("empty", "silence"):
     #         d["value"][1] = ""
     #     else:
-    #         try: 
+    #         try:
     #             d["value"][1] = float(word)
     #         except ValueError:
     #             print("handle poetic numbers")
@@ -230,24 +281,51 @@ def generate_trees(statement):
         d = {"action":"assign_variable", "value":[arg, word]}
         return d
 
-    elif word in ("if", "while", "until"): 
-        d = {"action":"flow control", "value": [word, "expression"]} 
-        i += len(word) + 1 
-        word = get_word(statement, i) 
-        next_d = parseConditional(statement, i) 
-        d["value"][1] = next_d 
-        return d 
+    elif word in ("if", "while", "until"):
+        d = {"action":"flow control", "value": [word, "expression"]}
+        i += len(word) + 1
+        word = get_word(statement, i)
+        next_d = parseConditional(statement, i)
+        d["value"][1] = next_d
+        return d
 
-    elif word in ("oh", "yeah", "baby"): 
+    elif word in ("oh", "yeah", "baby"):
         d = {"action":"end flow", "value": word}
-        return d 
-        
-    
+        return d
+
+
+    elif " at " in statement:
+        arr_name = ""
+        arr_name += word
+        print(word)
+        i += len(word) + 1
+        word = get_word(statement,i)
+        while word != "at" and i < len(statement):
+            arr_name += " " + word
+            print(word)
+            i += len(word) + 1
+            word = get_word(statement,i)
+        i += len(word) + 1
+        word = get_word(statement,i)
+        print(word)
+        index = word
+        i += len(word) + 1
+        word = get_word(statement,i)
+        if word == "is":
+            i += len(word) + 1
+            val = statement[i:]
+        else:
+            raise Exception("\'is\' is required when using \'at\'")
+
+
+        d = {"action":"assign_array", "value":[arr_name,index,val]}
+        return d;
+
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
-        if "is" in statement or "are" in statement or "am" in statement or "was" in statement or "were" in statement or "'s" in statement or "'re" in statement: 
+        if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement or " 's " in statement or " 're " in statement:
             if word in ("a", "an", "the", "my", "your", "our"):
                 i += len(word) + 1
-            
+
             word = get_word(statement, i)
 
             d = {"action":"assign_variable", "value":[word[:-3] if word[-3:] in ("'re", "'s") else word, "value"]}
@@ -268,21 +346,41 @@ def generate_trees(statement):
             elif statement[i:] in ("empty", "silence"):
                 d["value"][1] = ""
             else:
-                try: 
+                try:
                     d["value"][1] = float(statement[i:])
                 except ValueError:
                     print("handle poetic numbers")
-                
             return d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
-# print(check_for_ops_in_expression("\"donkey\" \"dick"))
+# print(check_for_ops_in_expression("\"donkey\" \"doop"))
 
-print(generate_trees("let him be me too"))
+print(generate_trees("M at 0 is me"))
 
 # print(get_word("let him be me", 11))
 # d = generate_trees("put true into my var")
 # print(d)
+# print(find_quotes_in_expression("\"donkey\" \"doop"))
+# print(re.split("\*|(times)|(of)","1 * 2 times 3"))
+print(handle_expression("1 * 2 times 3 + 5 / 3 - 10"))
