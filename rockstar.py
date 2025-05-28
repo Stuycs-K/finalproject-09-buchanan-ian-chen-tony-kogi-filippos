@@ -2,6 +2,8 @@ import re
 
 FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
+NUMBERS = ["1","2","3","4","5","6","7","8","9"]
+
 
 def process_program(program):
     trees = []
@@ -199,11 +201,9 @@ def generate_trees(statement):
         d = {"action":"end flow", "value": word}
         return d 
         
-
-    elif " at " in statement:
+    elif word in ["rock"]:
         arr_name = ""
-        arr_name += word
-        print(word)
+        d = [{"action":"assign array", "value": ""}]
         i += len(word) + 1
         word = get_word(statement,i)
         while word != "at" and i < len(statement):
@@ -211,9 +211,32 @@ def generate_trees(statement):
             print(word)
             i += len(word) + 1
             word = get_word(statement,i)
+        if word == "at":
+            i += len(word) + 1
+            word = get_word(statement,i)
+            if word in NUMBERS:
+                index = word
+                i += len(word) + 1
+                word = get_word(statement,i)
+                
+            else:
+                 raise Exception("index is required for array assignment")
+
+
+    elif " at " in statement:
+        arr_name = ""
+        arr_name += word
+        # print(word)
         i += len(word) + 1
         word = get_word(statement,i)
-        print(word)
+        while word != "at" and i < len(statement):
+            arr_name += " " + word
+            # print(word)
+            i += len(word) + 1
+            word = get_word(statement,i)
+        i += len(word) + 1
+        word = get_word(statement,i)
+        # print(word)
         index = word
         i += len(word) + 1
         word = get_word(statement,i)
@@ -224,9 +247,10 @@ def generate_trees(statement):
             raise Exception("\'is\' is required when using \'at\'")
 
                     
-        d = {"action":"assign_array", "value":[arr_name,index,val]}
+        d = {"action":"assign array", "value":[arr_name,index,val]}
         return d;
-    
+
+        
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement or " 's " in statement or " 're " in statement: 
             if word in ("a", "an", "the", "my", "your", "our"):
