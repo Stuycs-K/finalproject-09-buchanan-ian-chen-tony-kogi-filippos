@@ -48,7 +48,7 @@ def booleanParse(word):
     else: 
         return True 
 
-def parseConditional(statement, i): 
+def conditionalToArray(statement, i): 
     d = {"conditional": "operator", "value": "evaluation_expression"}
     tokens = []
     word = get_word(statement, i) 
@@ -77,15 +77,58 @@ def parseConditional(statement, i):
                 else: 
                     tokens.append(not booleanParse(eval))   
         ### binary operators 
-        #elif word == "or":
-
-        #elif word == "and": 
-
-        #elif word == 
-
+        elif word == "or":
+            tokens.append("OR") 
+        elif word == "and": 
+            tokens.append("AND") 
+        elif word in ("is", "was", "are", "were"): 
+            word = get_word(statement, i) 
+            i += len(word) + 1 
+            if word in ("exactly", "really", "actually", "totally"): 
+                tokens.append("STRICTEQ") 
+            elif word in ("higher", "greater", "bigger", "stronger"): 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word == "than": 
+                    tokens.append("GT") 
+                else: 
+                    print("THAN expected in comparison") 
+            elif word in ("lower", "less", "smaller", "weaker"): 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word == "than": 
+                    tokens.append("LT") 
+                else: 
+                    print("THAN expected in comparison") 
+            elif word == "as": 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word in ("high", "great", "big", "strong"): 
+                    word = get_word(statement, i) 
+                    i += len(word) + 1 
+                    if word == "as": 
+                        tokens.append("GEQ") 
+                    else: 
+                        print("AS expected in comparison") 
+                if word in ("low", "little", "small", "weak"): 
+                    word = get_word(statement, i) 
+                    i += len(word) + 1 
+                    if word == "as": 
+                        tokens.append("LEQ") 
+                    else: 
+                        print("AS" expected in comparison") 
+            
+        elif word in ("isn't", "ain't"): 
+            tokens.append("INEQ") 
+        #elif word in 
+            
+        #elif word is a previosly definied variable: find variable in dictionary list 
         else: 
-            d["value"].append(True) 
-    return d
+            tokens.append(True) 
+    return tokens 
+
+#def parseConditionalArray(tokens): 
+#if either value is string, they are coerced to string, if both are numerical they are compared as that 
 
 def get_word(statement, index):
     statement = statement[index:]
