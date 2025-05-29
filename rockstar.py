@@ -89,11 +89,10 @@ def booleanParse(word):
         return True
 
 def conditionalToArray(statement, i): 
-    d = {"conditional": "operator", "value": "evaluation_expression"}
     tokens = []
-    word = get_word(statement, i)
-    i += len(word) + 1
-    while i < len(word):
+    while i < len(statement): 
+        word = get_word(statement, i)
+        i += len(word) + 1
         if word in FALSY:
             tokens.append(False)
         elif word in ("not"):
@@ -156,19 +155,24 @@ def conditionalToArray(statement, i):
                     if word == "as": 
                         tokens.append("LEQ") 
                     else: 
-                        print("AS" expected in comparison") 
+                        print("AS expected in comparison") 
             
         elif word in ("isn't", "ain't"): 
-            tokens.append("INEQ") 
-        #elif word in 
-            
-        #elif word is a previosly definied variable: find variable in dictionary list 
+            tokens.append("INEQ")
         else: 
-            tokens.append(True) 
+            if len(tokens) != 0 and type(tokens[-1]) == list: 
+                x = tokens[-1] 
+                s = x[0] 
+                s += " " + word
+                x[0] = s  
+                tokens[-1] = x 
+            else: 
+                tokens.append([word]) 
     return tokens 
 
-#def parseConditionalArray(tokens): 
 #if either value is string, they are coerced to string, if both are numerical they are compared as that 
+#def parseConditionalArray(tokens): 
+    
 
 
 def get_word(statement, index):
@@ -231,8 +235,8 @@ def generate_trees(statement):
     elif word in ("if", "while", "until"):
         d = {"action":"flow control", "value": [word, "expression"]}
         i += len(word) + 1
-        word = get_word(statement, i)
-        next_d = parseConditional(statement, i)
+        tokens = conditionalToArray(statement, i)
+        next_d = parseConditionalArray(tokens)
         d["value"][1] = next_d
         return d
 
@@ -325,8 +329,10 @@ def generate_trees(statement):
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
 # print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
-print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
+
+print(conditionalToArray("me and you or my dream", 0))
