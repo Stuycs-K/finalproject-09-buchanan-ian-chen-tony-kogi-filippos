@@ -21,14 +21,14 @@ def find_quotes_in_expression(expression):
         i = expression.find("\"", i) + 1
     return quotes
 
-def find_words_in_expression(expression, words):
-    locs = []
-    i = 0
-    #use regex search and change the expression in a loop way
-    while expression.find("\"", i) != -1:
-        quotes.append(expression.find("\"", i))
-        i += expression.find("\"", i) + 1
-    return quotes
+# def find_words_in_expression(expression, words):
+#     locs = []
+#     i = 0
+#     #use regex search and change the expression in a loop way
+#     while expression.find("\"", i) != -1:
+#         locs.append(expression.find("\"", i))
+#         i += expression.find("\"", i) + 1
+#     return locs
 
 def contains(string, list):
     for i in list:
@@ -142,7 +142,7 @@ def generate_trees(statement):
             endquote = statement[i+1:].find("\"")
             d["value"] = statement[i+1: i+1+endquote]
         else:
-            e = {"action":"get_variable", "value": statement[i:]}
+            e = handle_expression(statement[i:])
             d["value"] = e
         return d
 
@@ -150,73 +150,28 @@ def generate_trees(statement):
     if word in ('put'):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
-        word = get_word(statement, i)
 
         # replace with handle_expression()
-        if statement[i] == "\"":
-            endquote = quotes[quotes.index(i) + 1]
-            d["value"][1] = statement[i+1:endquote]
-        elif word in ('true','right','ok','yes'):
-            d["value"][1] = True
-        elif word in ('wrong','no','lies','false'):
-            d["value"][1] = False
-        elif word in ("nothing", "nowhere", "nobody", "gone", "null"):
-            d["value"][1] = None
-        elif word in ("empty", "silence"):
-            d["value"][1] = ""
-        else:
-            try:
-                d["value"][1] = float(word)
-            except ValueError:
-                print("handle poetic numbers")
+        d["value"][1] = handle_expression(statement[i:statement.find(" into")])
 
-        i += len(word) + 1
+        i = statement.find("into")
         word = get_word(statement, i)
-        if word not in ('into'):
-            print("into expected as next word")
         i += len(word) + 1
         word = statement[i:]
         d["value"][0] = word
         return d
 
-    #     expression_end = statement.find("into")
-    #     expression = statement[i:expression_end]
-
-    #     if statement[i] == "\"":
-    #         endquote = statement[i+1:].find("\"")
-    #         d["value"][1] = statement[i:endquote]
-    #     elif word in ('true','right','ok','yes'):
-    #         d["value"][1] = True
-    #     elif word in ('wrong','no','lies','false'):
-    #         d["value"][1] = False
-    #     elif word in ("nothing", "nowhere", "nobody", "gone", "null"):
-    #         d["value"][1] = None
-    #     elif word in ("empty", "silence"):
-    #         d["value"][1] = ""
-    #     else:
-    #         try:
-    #             d["value"][1] = float(word)
-    #         except ValueError:
-    #             print("handle poetic numbers")
-    #     return d
-
     elif (word == "let"):
         i = len(word) + 1
-        arg = ""
-        word = get_word(statement,i)
+        var_name = statement[i:statement.find(" be")]
         # print(word)
-        while (word != "be" and i < len(statement)):
-            arg += word
-            i += len(word) + 1
-            word = get_word(statement,i)
-            # print(word,i)
+        i = statement.find("be")
+        word = get_word(statement, i)
         i += len(word) + 1
+            # print(word,i)
+        exp = statement[i:]
         # print(word)
-        if (word != "be"):
-            raise Exception("\'be\' is required when using \'let\'")
-        word = get_word(statement,i)
-        # print(word)
-        d = {"action":"assign_variable", "value":[arg, word]}
+        d = {"action":"assign_variable", "value":[var_name, handle_expression(exp)]}
         return d
 
     elif word in ("if", "while", "until"):
@@ -256,38 +211,20 @@ def generate_trees(statement):
             raise Exception("\'is\' is required when using \'at\'")
 
 
-        d = {"action":"assign_array", "value":[arr_name,index,val]}
-        return d;
+        d = {"action":"assign_array", "value":[arr_name,index,handle_expression(val)]}
+        return d
 
     else: #variable assignment / FUNCTION ASSIGNMENT LATER
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement or " 's " in statement or " 're " in statement:
-            if word in ("a", "an", "the", "my", "your", "our"):
-                i += len(word) + 1
 
-            word = get_word(statement, i)
+            d = {"action":"assign_variable", "value":[word[:-3] if word[-3:] in ("'re", "'s") else statement[:statement.find(" is")], "value"]}
 
-            d = {"action":"assign_variable", "value":[word[:-3] if word[-3:] in ("'re", "'s") else word, "value"]}
-
-            i += len(word) + 1
+            i = statement.find("is")
 
             word = get_word(statement, i)
 
             i += len(word) + 1
-            if statement[i] == "\"":
-                d["value"][1] = statement[i:][1:-1]
-            elif statement[i:] in ('true','right','ok','yes'):
-                d["value"][1] = True
-            elif statement[i:] in ('wrong','no','lies','false'):
-                d["value"][1] = False
-            elif statement[i:] in ("nothing", "nowhere", "nobody", "gone", "null"):
-                d["value"][1] = None
-            elif statement[i:] in ("empty", "silence"):
-                d["value"][1] = ""
-            else:
-                try:
-                    d["value"][1] = float(statement[i:])
-                except ValueError:
-                    print("handle poetic numbers")
+            d["value"][1] = handle_expression(statement[i:])
             return d
 
 
@@ -314,11 +251,13 @@ def generate_trees(statement):
 
 # print(check_for_ops_in_expression("\"donkey\" \"doop"))
 
-print(generate_trees("M at 0 is me"))
+# print(generate_trees("M at 0 is me"))
 
 # print(get_word("let him be me", 11))
 # d = generate_trees("put true into my var")
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-print(handle_expression("1 * 2 times 3 + 5 / 3 - 10"))
+print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+print(generate_trees("the b is 1 * 2 times 3 + 5 / 3 - 10"))
+print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
