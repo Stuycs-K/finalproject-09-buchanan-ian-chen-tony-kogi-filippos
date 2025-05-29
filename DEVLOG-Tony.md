@@ -17,4 +17,6 @@ Started writing code for "Put".
 
 ### 2025-05-23 - 27 - SICK
 
-###
+### 2025-05-28 - Worked on arithmetic and variable assignment
+Completed arithmetic portion of handle_expressions() and updated previous functions to use handle_expressions().
+I also fixed and updated the variable assignment for "is". 

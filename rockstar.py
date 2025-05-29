@@ -5,7 +5,7 @@ FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", 
 
 def process_program(program):
     trees = []
-    program = re.sub(r"(?![A-Z]\.)(([a-zA-Z\.]{1,})(\.|\?|\!|\;|\n))",r"\2\n", program)
+    program = re.sub("(\.|\?|\!|\;|\n)","\n", program)
     for i in program.split("\n"):
         if i == "":
             continue
@@ -35,7 +35,12 @@ def contains(string, list):
         if string.find(i) != -1:
             return True
 
-def handle_expression(expression):
+def handle_variable_names(variable):
+    if len(variable.split(" ")) == 3 or (len(variable.split(" ")) == 2 and not contains(variable, ("a", "an", "the", "my", "your", "our"))):
+        return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
+    return variable.lower()
+
+def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
     if expression.count("\"") == 2:
         return expression[1:-1]
     elif expression in ('true','right','ok','yes'):
@@ -68,11 +73,13 @@ def handle_expression(expression):
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
-            elif contains(expression, ("/", "over", "between")):
+            elif contains(expression, ("/", "over", "between", "divided by")):
                 d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
+            elif expression in ctx:
+                return {"action":"get_variable", "value":expression}
 
 def booleanParse(word):
     if word in FALSY:
@@ -124,7 +131,7 @@ def get_word(statement, index):
     end = statement.find(" ")
     if end == -1:
        return statement
-    return statement[:end].lower()
+    return statement[:end]
 
 # def get_next_word(statement, index, currWordLength):
 
@@ -142,7 +149,8 @@ def generate_trees(statement):
             endquote = statement[i+1:].find("\"")
             d["value"] = statement[i+1: i+1+endquote]
         else:
-            e = handle_expression(statement[i:])
+            print(statement[i:])
+            e = handle_expression(statement[i:], {"cheese":4})
             d["value"] = e
         return d
 
@@ -158,7 +166,7 @@ def generate_trees(statement):
         word = get_word(statement, i)
         i += len(word) + 1
         word = statement[i:]
-        d["value"][0] = word
+        d["value"][0] = handle_variable_names(word)
         return d
 
     elif (word == "let"):
@@ -171,7 +179,8 @@ def generate_trees(statement):
             # print(word,i)
         exp = statement[i:]
         # print(word)
-        d = {"action":"assign_variable", "value":[var_name, handle_expression(exp)]}
+        print(exp)
+        d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp)]}
         return d
 
     elif word in ("if", "while", "until"):
@@ -214,35 +223,27 @@ def generate_trees(statement):
         d = {"action":"assign_array", "value":[arr_name,index,handle_expression(val)]}
         return d
 
-    else: #variable assignment / FUNCTION ASSIGNMENT LATER
-        if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement or " 's " in statement or " 're " in statement:
+    else:
+        if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement:
+            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement).start()
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
 
-            d = {"action":"assign_variable", "value":[word[:-3] if word[-3:] in ("'re", "'s") else statement[:statement.find(" is")], "value"]}
-
-            i = statement.find("is")
+            i = pos
 
             word = get_word(statement, i)
 
             i += len(word) + 1
             d["value"][1] = handle_expression(statement[i:])
             return d
+        if "'s" in statement or "'re" in statement:
+            pos = re.search("('s)|('re)",statement).start()
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
+            i = pos
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            word = get_word(statement, i)
+            i +=len(word) +1
+            d["value"][1] = handle_expression(statement[i:])
+            return d
 
 
 
@@ -258,6 +259,9 @@ def generate_trees(statement):
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
-print(generate_trees("the b is 1 * 2 times 3 + 5 / 3 - 10"))
-print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("Let the total be the price + the tax"))
