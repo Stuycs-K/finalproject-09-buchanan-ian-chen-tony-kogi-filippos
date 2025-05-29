@@ -156,7 +156,7 @@ def conditionalToArray(statement, i):
                     if word == "as": 
                         tokens.append("LEQ") 
                     else: 
-                        print("AS" expected in comparison") 
+                        print("\"AS\" expected in comparison") 
             
         elif word in ("isn't", "ain't"): 
             tokens.append("INEQ") 
@@ -246,7 +246,9 @@ def generate_trees(statement):
         i += len(word) + 1
         word = get_word(statement,i)
         while word != "at" and i < len(statement):
-            arr_name += " " + word
+            if (len(arr_name) != 0):
+                arr_name += " "
+            arr_name += word
             print(word)
             i += len(word) + 1
             word = get_word(statement,i)
@@ -260,9 +262,12 @@ def generate_trees(statement):
                 
             else:
                  raise Exception("index is required for array assignment")
-
+        else:
+            d[0]["value"] = [arr_name]
+        return d
 
     elif " at " in statement:
+        d = {}
         arr_name = ""
         arr_name += word
         # print(word)
@@ -273,12 +278,16 @@ def generate_trees(statement):
             # print(word)
             i += len(word) + 1
             word = get_word(statement,i)
-        i += len(word) + 1
-        word = get_word(statement,i)
+        if word == "at:
+            return d
+        
+        # i += len(word) + 1
+        # word = get_word(statement,i)
         # print(word)
-        index = word
-        i += len(word) + 1
-        word = get_word(statement,i)
+        # index = word
+        # i += len(word) + 1
+        # word = get_word(statement,i)
+        while 
         if word == "is":
             i += len(word) + 1
             val = statement[i:]
@@ -325,8 +334,9 @@ def generate_trees(statement):
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
 # print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
-print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
+# print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
+print(generate_trees("Rock my Array at 1"))
