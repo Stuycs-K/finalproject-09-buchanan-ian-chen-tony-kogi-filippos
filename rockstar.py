@@ -3,6 +3,13 @@ import re
 FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
 
+def get_word(statement, index):
+    statement = statement[index:]
+    end = statement.find(" ")
+    if end == -1:
+       return statement
+    return statement[:end]
+
 def process_program(program):
     trees = []
     program = re.sub("(\.|\?|\!|\;|\n)","\n", program)
@@ -36,13 +43,18 @@ def contains(string, list):
             return True
 
 def handle_variable_names(variable):
+    if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
+        return {"action":"pronoun", "value":"variable"}
     if len(variable.split(" ")) == 3 or (len(variable.split(" ")) == 2 and not contains(variable, ("a", "an", "the", "my", "your", "our"))):
         return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
     return variable.lower()
 
-def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
-    if expression.count("\"") == 2:
+def handle_expression(expression, ctx=["the total", "the price", "the tax"]):
+    if expression[0] == "\"" and expression[-1] == "\"":
         return expression[1:-1]
+    elif get_word(expression, 0) in ("so", "like"):
+        word = get_word(expression, 0)
+        return int("".join([len(i) % 10 for i in expression[len(word) + 1:].split(" ")]))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -51,6 +63,8 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         return None
     elif expression in ("empty", "silence"):
         return ""
+    elif expression in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
+        return {"action":"pronoun", "value":"value"}
     else:
         try:
             return float(expression)
@@ -126,12 +140,6 @@ def parseConditional(statement, i):
             d["value"].append(True)
     return d
 
-def get_word(statement, index):
-    statement = statement[index:]
-    end = statement.find(" ")
-    if end == -1:
-       return statement
-    return statement[:end]
 
 # def get_next_word(statement, index, currWordLength):
 
@@ -144,14 +152,7 @@ def generate_trees(statement):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
-
-        if statement[i:][0] == "\"":
-            endquote = statement[i+1:].find("\"")
-            d["value"] = statement[i+1: i+1+endquote]
-        else:
-            print(statement[i:])
-            e = handle_expression(statement[i:], {"cheese":4})
-            d["value"] = e
+        d["value"] = handle_expression(statement[i:])
         return d
 
     quotes = find_quotes_in_expression(statement)
@@ -228,7 +229,7 @@ def generate_trees(statement):
             pos = re.search("( is)|( are)|( am)|( was)|( were)",statement).start()
             d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
 
-            i = pos
+            i = pos + 1
 
             word = get_word(statement, i)
 
@@ -265,3 +266,5 @@ print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
+print(generate_trees("print \"cheese\" plus him"))
+print(generate_trees("he is so cheese"))
