@@ -54,7 +54,7 @@ def handle_expression(expression, ctx=["the total", "the price", "the tax"]):
         return expression[1:-1]
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
-        return int("".join([len(i) % 10 for i in expression[len(word) + 1:].split(" ")]))
+        return int("".join([str(len(i) % 10) for i in expression[len(word) + 1:].split(" ")]))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -267,4 +267,4 @@ print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
 print(generate_trees("print \"cheese\" plus him"))
-print(generate_trees("he is so cheese"))
+print(generate_trees("he is so cheese burger"))
