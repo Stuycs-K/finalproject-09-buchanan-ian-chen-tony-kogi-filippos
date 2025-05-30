@@ -89,11 +89,10 @@ def booleanParse(word):
         return True
 
 def conditionalToArray(statement, i): 
-    d = {"conditional": "operator", "value": "evaluation_expression"}
     tokens = []
-    word = get_word(statement, i)
-    i += len(word) + 1
-    while i < len(word):
+    while i < len(statement): 
+        word = get_word(statement, i)
+        i += len(word) + 1
         if word in FALSY:
             tokens.append(False)
         elif word in ("not"):
@@ -156,19 +155,28 @@ def conditionalToArray(statement, i):
                     if word == "as": 
                         tokens.append("LEQ") 
                     else: 
+<<<<<<< HEAD
                         print("\"AS\" expected in comparison") 
+=======
+                        print("AS expected in comparison") 
+>>>>>>> 4274d8a6d28197b8ee23dfb0b9b194faa217d59a
             
         elif word in ("isn't", "ain't"): 
-            tokens.append("INEQ") 
-        #elif word in 
-            
-        #elif word is a previosly definied variable: find variable in dictionary list 
+            tokens.append("INEQ")
         else: 
-            tokens.append(True) 
+            if len(tokens) != 0 and type(tokens[-1]) == list: 
+                x = tokens[-1] 
+                s = x[0] 
+                s += " " + word
+                x[0] = s  
+                tokens[-1] = x 
+            else: 
+                tokens.append([word]) 
     return tokens 
 
-#def parseConditionalArray(tokens): 
 #if either value is string, they are coerced to string, if both are numerical they are compared as that 
+#def parseConditionalArray(tokens): 
+    
 
 
 def get_word(statement, index):
@@ -231,8 +239,8 @@ def generate_trees(statement):
     elif word in ("if", "while", "until"):
         d = {"action":"flow control", "value": [word, "expression"]}
         i += len(word) + 1
-        word = get_word(statement, i)
-        next_d = parseConditional(statement, i)
+        tokens = conditionalToArray(statement, i)
+        next_d = parseConditionalArray(tokens)
         d["value"][1] = next_d
         return d
 
@@ -255,13 +263,16 @@ def generate_trees(statement):
         if word == "at":
             i += len(word) + 1
             word = get_word(statement,i)
-            if word in NUMBERS:
-                index = word
-                i += len(word) + 1
-                word = get_word(statement,i)
+            
+            # while (word != is and i < len(statement)):.
                 
-            else:
-                 raise Exception("index is required for array assignment")
+            # if word in NUMBERS:
+                # index = word
+                # i += len(word) + 1
+                # word = get_word(statement,i)
+                # 
+            # else:
+                 # raise Exception("index or key is required for array assignment")
         else:
             d[0]["value"] = [arr_name]
         return d
@@ -287,7 +298,6 @@ def generate_trees(statement):
         # index = word
         # i += len(word) + 1
         # word = get_word(statement,i)
-        while 
         if word == "is":
             i += len(word) + 1
             val = statement[i:]
@@ -340,3 +350,5 @@ def generate_trees(statement):
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
 print(generate_trees("Rock my Array at 1"))
+
+# print(conditionalToArray("me and you or my dream", 0))

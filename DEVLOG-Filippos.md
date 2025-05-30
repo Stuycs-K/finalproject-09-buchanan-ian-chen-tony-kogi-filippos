@@ -14,6 +14,16 @@ the interpreter would work. I only had difficult understanding the dictionary st
 ### 2025-05-23 - finished let
 found problems with my earlier version, and the find_word() function. Fixed that qwith ian.
 
-### 2025-05-23 - finished at (arrays)
+### 2025-05-27 - finished at (arrays)
 Spent some time researching on the rockstar website on how the array assignment works
 Got it working for some basic sentences, but had to create a new type of dixtionary (since each assignemnt doesn't erase the other entries - it is unlike the standard variable assignment)
+
+### 2025-05-28 - started working on rock array
+Spent class period looking at "rock" which initializes arrays and documentation for it.
+I got the dictionary working for simple cases, but had to create a new type for it.
+
+### 2025-05-29 - initialize array with values
+looked at more examples of initializing arrays, and discovered that you can initialize by placing values at an indice.
+worked on the rock array part more, but didn't finish
+
+
