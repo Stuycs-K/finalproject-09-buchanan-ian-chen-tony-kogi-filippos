@@ -1,4 +1,5 @@
 import re
+import itertools
 
 FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
@@ -54,7 +55,7 @@ def handle_expression(expression, ctx=["the total", "the price", "the tax"]):
         return expression[1:-1]
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
-        return int("".join([str(len(i) % 10) for i in expression[len(word) + 1:].split(" ")]))
+        return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")])))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -267,4 +268,4 @@ print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
 print(generate_trees("print \"cheese\" plus him"))
-print(generate_trees("he is so cheese burger"))
+print(generate_trees("he is so cheese's burger... one"))
