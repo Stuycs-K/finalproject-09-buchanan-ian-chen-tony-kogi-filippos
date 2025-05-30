@@ -156,7 +156,6 @@ def generate_trees(statement):
         d["value"] = handle_expression(statement[i:])
         return d
 
-    quotes = find_quotes_in_expression(statement)
     if word in ('put'):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
