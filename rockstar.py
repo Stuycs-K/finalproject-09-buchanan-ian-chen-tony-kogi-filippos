@@ -43,8 +43,8 @@ def handle_variable_names(variable):
     return variable.lower()
 
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
-    if expression.count("\"") == 2:
-        return expression[1:-1]
+    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2:
+        return re.sub("\"\"", "\"", expression[1:-1])
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
         return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")])))
@@ -197,14 +197,8 @@ def generate_trees(statement):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
-
-        if statement[i:][0] == "\"":
-            endquote = statement[i+1:].find("\"")
-            d["value"] = statement[i+1: i+1+endquote]
-        else:
-            print(statement[i:])
-            e = handle_expression(statement[i:], {"cheese":4})
-            d["value"] = e
+        e = handle_expression(statement[i:], {"cheese":4})
+        d["value"] = e
         return d
 
     quotes = find_quotes_in_expression(statement)
@@ -353,6 +347,6 @@ print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("it is with 4"))
+print(generate_trees("print \"I am the \"\"goat\"\"\""))
 
 # print(conditionalToArray("me and you or my dream", 0))
