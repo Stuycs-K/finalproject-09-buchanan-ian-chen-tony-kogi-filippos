@@ -21,5 +21,8 @@ Started writing code for "Put".
 Completed arithmetic portion of handle_expressions() and updated previous functions to use handle_expressions().
 I also fixed and updated the variable assignment for "is". 
 
-### 2025-05-289 Worked on poetic numbers and variable usage in expressions
+### 2025-05-29 Worked on poetic numbers and variable usage in expressions
 I started working on poetic numbers and I made pronouns functional as well.
+
+### 2025-05-30 Worked on poetic strings
+I finished poetic numbers and started working on poetic strings
