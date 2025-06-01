@@ -155,11 +155,7 @@ def conditionalToArray(statement, i):
                     if word == "as": 
                         tokens.append("LEQ") 
                     else: 
-<<<<<<< HEAD
-                        print("\"AS\" expected in comparison") 
-=======
                         print("AS expected in comparison") 
->>>>>>> 4274d8a6d28197b8ee23dfb0b9b194faa217d59a
             
         elif word in ("isn't", "ain't"): 
             tokens.append("INEQ")
@@ -175,8 +171,8 @@ def conditionalToArray(statement, i):
     return tokens 
 
 #if either value is string, they are coerced to string, if both are numerical they are compared as that 
-#def parseConditionalArray(tokens): 
-    
+def parseConditionalArray(tokens): 
+    pass
 
 
 def get_word(statement, index):
@@ -289,7 +285,7 @@ def generate_trees(statement):
             # print(word)
             i += len(word) + 1
             word = get_word(statement,i)
-        if word == "at:
+        if word == "at":
             return d
         
         # i += len(word) + 1
@@ -328,7 +324,11 @@ def generate_trees(statement):
             i +=len(word) +1
             d["value"][1] = handle_expression(statement[i:])
             return d
-
+        if contains(statement, ("says", "said")):
+            start = re.search("(says)|(said)",statement).start()
+            end = re.search("(says)|(said)",statement).end()
+            str = statement[end+1:] if statement[end] == " " else statement[end:]
+            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"')]}
 
 
 # print(process_program("print cheese. b is empty"))
@@ -349,6 +349,6 @@ def generate_trees(statement):
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("Rock my Array at 1"))
+print(generate_trees("Tommy says, cheese fries"))
 
 # print(conditionalToArray("me and you or my dream", 0))
