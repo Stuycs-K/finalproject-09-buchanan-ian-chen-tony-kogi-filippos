@@ -1,4 +1,5 @@
 import re
+import itertools
 
 FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
@@ -44,6 +45,9 @@ def handle_variable_names(variable):
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
     if expression.count("\"") == 2:
         return expression[1:-1]
+    elif get_word(expression, 0) in ("so", "like"):
+        word = get_word(expression, 0)
+        return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")])))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -60,22 +64,22 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
                 quotes = find_quotes_in_expression(expression)
                 pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
             elif contains(expression, ("+", "with", "plus")):
-                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and not (i in ('with', 'plus'))]}
+                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and i != "" and not (i in ('with', 'plus'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("-", "minus", "without")):
-                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and not (i in ('minus', 'without'))]}
+                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and i != "" and not (i in ('minus', 'without'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("*", "times", "of")):
-                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and not (i in ('times', 'of'))]}
+                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and i != "" and not (i in ('times', 'of'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("/", "over", "between", "divided by")):
-                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
+                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and i != "" and not (i in ('over', 'between'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
@@ -305,10 +309,10 @@ def generate_trees(statement):
 
     else:
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement:
-            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement).start()
-            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
+            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement)
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()]), "value"]}
 
-            i = pos
+            i = pos.end()
 
             word = get_word(statement, i)
 
@@ -343,12 +347,12 @@ def generate_trees(statement):
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("Tommy says, cheese fries"))
+print(generate_trees("it is with 4"))
 
 # print(conditionalToArray("me and you or my dream", 0))
