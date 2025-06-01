@@ -19,5 +19,8 @@ Began to research and create parseConditional() to return booleans from conditio
 
 2- Started working on parseConditional() function by tokenizing the rest of a statement and appending values of T/F to them with binary operators. 
 
-### 2024-5-28 
+### 2024-5-28 Parse Conditional Progress for Flow Control 
+Wrote most of conditional statements alternatives to append to token list. Researched how to parse token array of conditional information into final interpretation. 
 
+### 2024-5-29 Tokenize condition finished 
+Finished conditionalToArray() function to tokenize conditional statements with final code and debugged and tested function. 

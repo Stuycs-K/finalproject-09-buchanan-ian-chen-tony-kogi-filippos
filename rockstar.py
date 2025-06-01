@@ -2,7 +2,8 @@ import re
 import itertools
 
 FLOW_CONTROL = ("if", "while", "until")
-FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
+FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
+NUMBERS = ["1","2","3","4","5","6","7","8","9"]
 
 def get_word(statement, index):
     statement = statement[index:]
@@ -50,12 +51,14 @@ def handle_variable_names(variable):
         return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
     return variable.lower()
 
-def handle_expression(expression, ctx=["the total", "the price", "the tax"]):
-    if expression[0] == "\"" and expression[-1] == "\"":
-        return expression[1:-1]
+def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
+    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2:
+        return re.sub("\"\"", "\"", expression[1:-1])
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
-        return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")])))
+        return float("".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")]))))
+    elif get_word(expression, 0) in ("holds"):
+        return chr(int(str(("".join([str(len(i.replace("'", "")) % 10) for i in expression[5 + 1:].split(" ")])))))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -74,27 +77,29 @@ def handle_expression(expression, ctx=["the total", "the price", "the tax"]):
                 quotes = find_quotes_in_expression(expression)
                 pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
             elif contains(expression, ("+", "with", "plus")):
-                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and not (i in ('with', 'plus'))]}
+                d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and i != "" and not (i in ('with', 'plus'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("-", "minus", "without")):
-                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and not (i in ('minus', 'without'))]}
+                d = {"action":"minus", "value":[i.strip() for i in re.split("\-|(minus)|(without)", expression) if i is not None and i != "" and not (i in ('minus', 'without'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("*", "times", "of")):
-                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and not (i in ('times', 'of'))]}
+                d = {"action":"multiply", "value":[i.strip() for i in re.split("\*|(times)|(of)", expression) if i is not None and i != "" and not (i in ('times', 'of'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif contains(expression, ("/", "over", "between", "divided by")):
-                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and not (i in ('over', 'between'))]}
+                d = {"action":"divide", "value":[i.strip() for i in re.split("\/|(over)|(between)", expression) if i is not None and i != "" and not (i in ('over', 'between'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
             elif expression in ctx:
                 return {"action":"get_variable", "value":expression}
+            else:
+                return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression.split(" ")])))
 
 def booleanParse(word):
     if word in FALSY:
@@ -102,12 +107,11 @@ def booleanParse(word):
     else:
         return True
 
-def parseConditional(statement, i):
-    d = {"conditional": "operator", "value": "evaluation_expression"}
+def conditionalToArray(statement, i): 
     tokens = []
-    word = get_word(statement, i)
-    i += len(word) + 1
-    while i < len(word):
+    while i < len(statement): 
+        word = get_word(statement, i)
+        i += len(word) + 1
         if word in FALSY:
             tokens.append(False)
         elif word in ("not"):
@@ -128,18 +132,67 @@ def parseConditional(statement, i):
                 i += len(word) + 1
                 if len(nonList) % 2 == 0:
                     tokens.append(booleanParse(eval))
-                else:
-                    tokens.append(not booleanParse(eval))
-        ### binary operators
-        #elif word == "or":
+                else: 
+                    tokens.append(not booleanParse(eval))   
+        ### binary operators 
+        elif word == "or":
+            tokens.append("OR") 
+        elif word == "and": 
+            tokens.append("AND") 
+        elif word in ("is", "was", "are", "were"): 
+            word = get_word(statement, i) 
+            i += len(word) + 1 
+            if word in ("exactly", "really", "actually", "totally"): 
+                tokens.append("STRICTEQ") 
+            elif word in ("higher", "greater", "bigger", "stronger"): 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word == "than": 
+                    tokens.append("GT") 
+                else: 
+                    print("THAN expected in comparison") 
+            elif word in ("lower", "less", "smaller", "weaker"): 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word == "than": 
+                    tokens.append("LT") 
+                else: 
+                    print("THAN expected in comparison") 
+            elif word == "as": 
+                word = get_word(statement, i) 
+                i += len(word) + 1 
+                if word in ("high", "great", "big", "strong"): 
+                    word = get_word(statement, i) 
+                    i += len(word) + 1 
+                    if word == "as": 
+                        tokens.append("GEQ") 
+                    else: 
+                        print("AS expected in comparison") 
+                if word in ("low", "little", "small", "weak"): 
+                    word = get_word(statement, i) 
+                    i += len(word) + 1 
+                    if word == "as": 
+                        tokens.append("LEQ") 
+                    else: 
+                        print("AS expected in comparison") 
+            
+        elif word in ("isn't", "ain't"): 
+            tokens.append("INEQ")
+        else: 
+            if len(tokens) != 0 and type(tokens[-1]) == list: 
+                x = tokens[-1] 
+                s = x[0] 
+                s += " " + word
+                x[0] = s  
+                tokens[-1] = x 
+            else: 
+                tokens.append([word]) 
+    return tokens 
 
-        #elif word == "and":
+#if either value is string, they are coerced to string, if both are numerical they are compared as that 
+def parseConditionalArray(tokens): 
+    pass
 
-        #elif word ==
-
-        else:
-            d["value"].append(True)
-    return d
 
 
 # def get_next_word(statement, index, currWordLength):
@@ -153,7 +206,8 @@ def generate_trees(statement):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
-        d["value"] = handle_expression(statement[i:])
+        e = handle_expression(statement[i:], {"cheese":4})
+        d["value"] = e
         return d
 
     if word in ('put'):
@@ -187,49 +241,80 @@ def generate_trees(statement):
     elif word in ("if", "while", "until"):
         d = {"action":"flow control", "value": [word, "expression"]}
         i += len(word) + 1
-        word = get_word(statement, i)
-        next_d = parseConditional(statement, i)
+        tokens = conditionalToArray(statement, i)
+        next_d = parseConditionalArray(tokens)
         d["value"][1] = next_d
         return d
 
     elif word in ("oh", "yeah", "baby"):
         d = {"action":"end flow", "value": word}
+        return d 
+        
+    elif word in ["rock"]:
+        arr_name = ""
+        d = [{"action":"assign array", "value": ""}]
+        i += len(word) + 1
+        word = get_word(statement,i)
+        while word != "at" and i < len(statement):
+            if (len(arr_name) != 0):
+                arr_name += " "
+            arr_name += word
+            print(word)
+            i += len(word) + 1
+            word = get_word(statement,i)
+        if word == "at":
+            i += len(word) + 1
+            word = get_word(statement,i)
+            
+            # while (word != is and i < len(statement)):.
+                
+            # if word in NUMBERS:
+                # index = word
+                # i += len(word) + 1
+                # word = get_word(statement,i)
+                # 
+            # else:
+                 # raise Exception("index or key is required for array assignment")
+        else:
+            d[0]["value"] = [arr_name]
         return d
 
-
     elif " at " in statement:
+        d = {}
         arr_name = ""
         arr_name += word
-        print(word)
+        # print(word)
         i += len(word) + 1
         word = get_word(statement,i)
         while word != "at" and i < len(statement):
             arr_name += " " + word
-            print(word)
+            # print(word)
             i += len(word) + 1
             word = get_word(statement,i)
-        i += len(word) + 1
-        word = get_word(statement,i)
-        print(word)
-        index = word
-        i += len(word) + 1
-        word = get_word(statement,i)
+        if word == "at":
+            return d
+        
+        # i += len(word) + 1
+        # word = get_word(statement,i)
+        # print(word)
+        # index = word
+        # i += len(word) + 1
+        # word = get_word(statement,i)
         if word == "is":
             i += len(word) + 1
             val = statement[i:]
         else:
             raise Exception("\'is\' is required when using \'at\'")
-
-
-        d = {"action":"assign_array", "value":[arr_name,index,handle_expression(val)]}
+                    
+        d = {"action":"assign array", "value":[arr_name,index,val]}
         return d
 
     else:
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement:
-            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement).start()
-            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
+            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement)
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()]), "value"]}
 
-            i = pos + 1
+            i = pos.end()
 
             word = get_word(statement, i)
 
@@ -245,7 +330,16 @@ def generate_trees(statement):
             i +=len(word) +1
             d["value"][1] = handle_expression(statement[i:])
             return d
-
+        if contains(statement, ("says", "said")):
+            start = re.search("( says)|( said)",statement).start()
+            end = re.search("( says)|( said)",statement).end()
+            str = statement[end+1:] if statement[end] == " " else statement[end:]
+            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"')]}
+        if contains(statement, ("holds")):
+            start = re.search("( holds)",statement).start()
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:start]), "value"]}
+            d["value"][1] = handle_expression(statement[start + 1:])
+            return d
 
 
 # print(process_program("print cheese. b is empty"))
@@ -260,11 +354,12 @@ def generate_trees(statement):
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
-print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
+print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+# print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("print \"cheese\" plus him"))
-print(generate_trees("he is so cheese's burger... one"))
+print(generate_trees("he holds a gun"))
+
+# print(conditionalToArray("me and you or my dream", 0))
