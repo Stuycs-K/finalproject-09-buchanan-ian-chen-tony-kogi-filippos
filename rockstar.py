@@ -47,7 +47,9 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         return re.sub("\"\"", "\"", expression[1:-1])
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
-        return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")])))
+        return float("".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")]))))
+    elif get_word(expression, 0) in ("holds"):
+        return chr(int(str(("".join([str(len(i.replace("'", "")) % 10) for i in expression[5 + 1:].split(" ")])))))
     elif expression in ('true','right','ok','yes'):
         return True
     elif expression in ('wrong','no','lies','false'):
@@ -85,6 +87,8 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
                 return d
             elif expression in ctx:
                 return {"action":"get_variable", "value":expression}
+            else:
+                return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression.split(" ")])))
 
 def booleanParse(word):
     if word in FALSY:
@@ -323,10 +327,15 @@ def generate_trees(statement):
             d["value"][1] = handle_expression(statement[i:])
             return d
         if contains(statement, ("says", "said")):
-            start = re.search("(says)|(said)",statement).start()
-            end = re.search("(says)|(said)",statement).end()
+            start = re.search("( says)|( said)",statement).start()
+            end = re.search("( says)|( said)",statement).end()
             str = statement[end+1:] if statement[end] == " " else statement[end:]
             return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"')]}
+        if contains(statement, ("holds")):
+            start = re.search("( holds)",statement).start()
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:start]), "value"]}
+            d["value"][1] = handle_expression(statement[start + 1:])
+            return d
 
 
 # print(process_program("print cheese. b is empty"))
@@ -347,6 +356,6 @@ print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("print \"I am the \"\"goat\"\"\""))
+print(generate_trees("he holds a gun"))
 
 # print(conditionalToArray("me and you or my dream", 0))
