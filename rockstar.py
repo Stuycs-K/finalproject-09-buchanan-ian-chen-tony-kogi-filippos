@@ -2,7 +2,7 @@ import re
 import itertools
 
 FLOW_CONTROL = ("if", "while", "until")
-FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy 
+FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
 NUMBERS = ["1","2","3","4","5","6","7","8","9"]
 
 def process_program(program):
@@ -96,9 +96,9 @@ def booleanParse(word):
     else:
         return True
 
-def conditionalToArray(statement, i): 
+def conditionalToArray(statement, i):
     tokens = []
-    while i < len(statement): 
+    while i < len(statement):
         word = get_word(statement, i)
         i += len(word) + 1
         if word in FALSY:
@@ -121,65 +121,65 @@ def conditionalToArray(statement, i):
                 i += len(word) + 1
                 if len(nonList) % 2 == 0:
                     tokens.append(booleanParse(eval))
-                else: 
-                    tokens.append(not booleanParse(eval))   
-        ### binary operators 
+                else:
+                    tokens.append(not booleanParse(eval))
+        ### binary operators
         elif word == "or":
-            tokens.append("OR") 
-        elif word == "and": 
-            tokens.append("AND") 
-        elif word in ("is", "was", "are", "were"): 
-            word = get_word(statement, i) 
-            i += len(word) + 1 
-            if word in ("exactly", "really", "actually", "totally"): 
-                tokens.append("STRICTEQ") 
-            elif word in ("higher", "greater", "bigger", "stronger"): 
-                word = get_word(statement, i) 
-                i += len(word) + 1 
-                if word == "than": 
-                    tokens.append("GT") 
-                else: 
-                    print("THAN expected in comparison") 
-            elif word in ("lower", "less", "smaller", "weaker"): 
-                word = get_word(statement, i) 
-                i += len(word) + 1 
-                if word == "than": 
-                    tokens.append("LT") 
-                else: 
-                    print("THAN expected in comparison") 
-            elif word == "as": 
-                word = get_word(statement, i) 
-                i += len(word) + 1 
-                if word in ("high", "great", "big", "strong"): 
-                    word = get_word(statement, i) 
-                    i += len(word) + 1 
-                    if word == "as": 
-                        tokens.append("GEQ") 
-                    else: 
-                        print("AS expected in comparison") 
-                if word in ("low", "little", "small", "weak"): 
-                    word = get_word(statement, i) 
-                    i += len(word) + 1 
-                    if word == "as": 
-                        tokens.append("LEQ") 
-                    else: 
-                        print("AS expected in comparison") 
-            
-        elif word in ("isn't", "ain't"): 
-            tokens.append("INEQ")
-        else: 
-            if len(tokens) != 0 and type(tokens[-1]) == list: 
-                x = tokens[-1] 
-                s = x[0] 
-                s += " " + word
-                x[0] = s  
-                tokens[-1] = x 
-            else: 
-                tokens.append([word]) 
-    return tokens 
+            tokens.append("OR")
+        elif word == "and":
+            tokens.append("AND")
+        elif word in ("is", "was", "are", "were"):
+            word = get_word(statement, i)
+            i += len(word) + 1
+            if word in ("exactly", "really", "actually", "totally"):
+                tokens.append("STRICTEQ")
+            elif word in ("higher", "greater", "bigger", "stronger"):
+                word = get_word(statement, i)
+                i += len(word) + 1
+                if word == "than":
+                    tokens.append("GT")
+                else:
+                    print("THAN expected in comparison")
+            elif word in ("lower", "less", "smaller", "weaker"):
+                word = get_word(statement, i)
+                i += len(word) + 1
+                if word == "than":
+                    tokens.append("LT")
+                else:
+                    print("THAN expected in comparison")
+            elif word == "as":
+                word = get_word(statement, i)
+                i += len(word) + 1
+                if word in ("high", "great", "big", "strong"):
+                    word = get_word(statement, i)
+                    i += len(word) + 1
+                    if word == "as":
+                        tokens.append("GEQ")
+                    else:
+                        print("AS expected in comparison")
+                if word in ("low", "little", "small", "weak"):
+                    word = get_word(statement, i)
+                    i += len(word) + 1
+                    if word == "as":
+                        tokens.append("LEQ")
+                    else:
+                        print("AS expected in comparison")
 
-#if either value is string, they are coerced to string, if both are numerical they are compared as that 
-def parseConditionalArray(tokens): 
+        elif word in ("isn't", "ain't"):
+            tokens.append("INEQ")
+        else:
+            if len(tokens) != 0 and type(tokens[-1]) == list:
+                x = tokens[-1]
+                s = x[0]
+                s += " " + word
+                x[0] = s
+                tokens[-1] = x
+            else:
+                tokens.append([word])
+    return tokens
+
+#if either value is string, they are coerced to string, if both are numerical they are compared as that
+def parseConditionalArray(tokens):
     pass
 
 
@@ -244,8 +244,8 @@ def generate_trees(statement):
 
     elif word in ("oh", "yeah", "baby"):
         d = {"action":"end flow", "value": word}
-        return d 
-        
+        return d
+
     elif word in ["rock"]:
         arr_name = ""
         d = [{"action":"assign array", "value": ""}]
@@ -259,23 +259,23 @@ def generate_trees(statement):
             i += len(word) + 1
             word = get_word(statement,i)
         if word == "at":
-            i += len(word) + 1
-            word = get_word(statement,i)
-            
+            d[0]["value"] = [arr_name,generate_trees(statement[i:])]
+            return d
+
             # while (word != is and i < len(statement)):.
-                
+
             # if word in NUMBERS:
                 # index = word
                 # i += len(word) + 1
                 # word = get_word(statement,i)
-                # 
+                #
             # else:
                  # raise Exception("index or key is required for array assignment")
         else:
-            d[0]["value"] = [arr_name]
+            d[0]["value"] = [arr_name,None]
         return d
 
-    elif " at " in statement:
+    elif "at" in statement:
         d = {}
         arr_name = ""
         arr_name += word
@@ -289,7 +289,7 @@ def generate_trees(statement):
             word = get_word(statement,i)
         if word == "at":
             return d
-        
+
         # i += len(word) + 1
         # word = get_word(statement,i)
         # print(word)
@@ -301,7 +301,7 @@ def generate_trees(statement):
             val = statement[i:]
         else:
             raise Exception("\'is\' is required when using \'at\'")
-                    
+
         d = {"action":"assign array", "value":[arr_name,index,val]}
         return d
 
@@ -350,12 +350,12 @@ def generate_trees(statement):
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("he holds a gun"))
+print(generate_trees("rock array at 1"))
 
 # print(conditionalToArray("me and you or my dream", 0))
