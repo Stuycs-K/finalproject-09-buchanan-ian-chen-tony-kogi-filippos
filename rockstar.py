@@ -5,6 +5,13 @@ FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
 NUMBERS = ["1","2","3","4","5","6","7","8","9"]
 
+def get_word(statement, index):
+    statement = statement[index:]
+    end = statement.find(" ")
+    if end == -1:
+       return statement
+    return statement[:end]
+
 def process_program(program):
     trees = []
     program = re.sub("(\.|\?|\!|\;|\n)","\n", program)
@@ -38,6 +45,8 @@ def contains(string, list):
             return True
 
 def handle_variable_names(variable):
+    if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
+        return {"action":"pronoun", "value":"variable"}
     if len(variable.split(" ")) == 3 or (len(variable.split(" ")) == 2 and not contains(variable, ("a", "an", "the", "my", "your", "our"))):
         return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
     return variable.lower()
@@ -58,6 +67,8 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         return None
     elif expression in ("empty", "silence"):
         return ""
+    elif expression in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
+        return {"action":"pronoun", "value":"value"}
     else:
         try:
             return float(expression)
@@ -194,7 +205,7 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
                         value = next
                 elif queued = "AND":
                     if value not in FALSY:
-                        value = next 
+                        value = next
                 elif queued = "INEQ":
 
         else:
@@ -210,12 +221,6 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
     return value
 
 
-def get_word(statement, index):
-    statement = statement[index:]
-    end = statement.find(" ")
-    if end == -1:
-       return statement
-    return statement[:end]
 
 # def get_next_word(statement, index, currWordLength):
 
@@ -232,7 +237,6 @@ def generate_trees(statement):
         d["value"] = e
         return d
 
-    quotes = find_quotes_in_expression(statement)
     if word in ('put'):
         d = {"action":"assign_variable", "value":["var_name", "value"]}
         i += len(word) + 1
@@ -301,6 +305,37 @@ def generate_trees(statement):
         else:
             d[0]["value"] = [arr_name]
         return d
+
+    elif word in ["rock"]:
+        if contains(statement, "at"):
+            arr_name = ""
+            d = [{"action":"assign array", "value": ""}]
+            i += len(word) + 1
+            word = get_word(statement,i)
+            while word != "at" and i < len(statement):
+                if (len(arr_name) != 0):
+                    arr_name += " "
+                arr_name += word
+                print(word)
+                i += len(word) + 1
+                word = get_word(statement,i)
+            if word == "at":
+                i += len(word) + 1
+                word = get_word(statement,i)
+                # while (word != is and i < len(statement)):.
+
+                # if word in NUMBERS:
+                    # index = word
+                    # i += len(word) + 1
+                    # word = get_word(statement,i)
+                    #
+                # else:
+                     # raise Exception("index or key is required for array assignment")
+            else:
+                d[0]["value"] = [arr_name]
+            return d
+        else:
+            #FILIPPOS WRITE HERE
 
     elif " at " in statement:
         d = {}
