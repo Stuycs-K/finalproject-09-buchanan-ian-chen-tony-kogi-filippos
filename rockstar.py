@@ -253,7 +253,7 @@ def generate_trees(statement):
     elif word in ["rock"]:
         if contains(statement, "at"):
             arr_name = ""
-            d = [{"action":"assign array", "value": ""}]
+            d = {"action":"assign array", "value": ""}
             i += len(word) + 1
             word = get_word(statement,i)
             while word != "at" and i < len(statement):
@@ -279,7 +279,17 @@ def generate_trees(statement):
                 d[0]["value"] = [arr_name]
             return d
         else:
-            #FILIPPOS WRITE HERE
+            if re.search("( with)", statement) is None:
+                var_name = statement[5:]
+                return {"action":"assign array", "value": [handle_variable_names(var_name)]}
+            else:
+                pos = re.search("( with)", statement)
+                var_end = pos.start()
+                exp_start = pos.end() + 1
+                return {"action":"assign array", "value": [handle_variable_names(statement[5:var_end]), handle_expression(statement[exp_start:])]}
+
+
+
 
     elif " at " in statement:
         d = {}
@@ -362,6 +372,6 @@ print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("he holds a gun"))
+print(generate_trees("rock jimmy"))
 
 # print(conditionalToArray("me and you or my dream", 0))
