@@ -428,31 +428,44 @@ def generate_trees(statement):
 # def interpret_trees(li, ctx):
     # for i in li:
 
-def add(parts):
-    sum = 0
-    for i in parts:
-        if type(sum) is str or #parts contains a string:
-            return
-        elif type(sum) is int or type(sum) is float:   
-            if type(i) is float or type(i) is int:
-                sum += i
-            elif type(i) is str:
-                sum = str(sum)
-                sum += i
-            elif type(i) is bool:
-                if i:
-                    sum += 1
-            elif i is None:
-            
-            
-            
+def add(a, b):
+    if type(a) is float:
+            try: 
+                a = int(a)
+            except:
+                pass
+    if type(b) is float:
+        try: 
+            b = int(b)
+        except:
+            pass
+    if type(a) is str or type(b) is str:
+        if a == True and not type(b) is int and not type(b) is float: a = "true"
+        if a == False and not type(b) is int and not type(b) is float: a = "false"
+        if b == True and not type(b) is int and not type(b) is float: b = "true"
+        if b == False and not type(b) is int and not type(b) is float: b = "false"
+        if a == None: a = "null"
+        if b == None: b = "null"   
+        return str(a) + str(b)
+    if a == None: a = 0
+    if b == None: b = 0
+    if a == True and not type(b) is int and not type(b) is float: a = 1
+    if b == False and not type(b) is int and not type(b) is float: b = 0
+    return a + b
 
+def adder(li):
+    out = li[0]
+    for i in range(1, len(li)):
+        out = add(out, li[i])
+    return out
             
 def interpret_dict(dict):
     if type(dict) is float or type(dict) is int or type(dict) is str:
         return 
     if dict["action"] == "add":
-        return add()
+        return adder(dict["value"])
+    if dict["action"] == "subtract":
+        
 
 
 # print(process_program("print cheese. b is empty"))
@@ -482,6 +495,7 @@ def interpret_dict(dict):
 # print(generate_trees("jimmy is dying"))
 
 print(process_program("print \"cheese\". cheese is 5. rock cheese. fries is 5 + 5 + 2"))
+print(interpret_dict({"action":"add", "value":[None, 1, 2.0, "cheese", True]}))
 #MAKE CHEESE CALL THE VARIABLE
 # print(handle_array("jimmy"))
 # print(conditionalToArray("me and you or my dream", 0))
