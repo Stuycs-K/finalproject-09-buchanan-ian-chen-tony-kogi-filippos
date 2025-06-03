@@ -24,3 +24,13 @@ Wrote most of conditional statements alternatives to append to token list. Resea
 
 ### 2024-5-29 Tokenize condition finished 
 Finished conditionalToArray() function to tokenize conditional statements with final code and debugged and tested function. 
+
+### 2024-5-30 ABSENT 
+
+### 2024-6-2 Worked on expression evaluation from tokenized arrays 
+1- Began and almost completed writing parseConditionalArray() function to evaluate boolean expressions inside of 'if'/'while' statements. Function uses context dictionary 
+as input in order to refer to previously defined variables and takes an array of tokens taken from the conditionalToArray() function. 
+
+2- Completed conditionalToArray() function to evaluate expressions by implementing decisions based on variable and queued actions tokens (expression evaluated strictly from left to right). 
+Also implemented working around type coercion in equality and comparison cases. 
+Ran a couple test cases to debug both expression evaluation functions. 

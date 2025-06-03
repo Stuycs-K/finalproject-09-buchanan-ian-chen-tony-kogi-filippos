@@ -117,7 +117,7 @@ def conditionalToArray(statement, i):
         elif word in ("not"):
             word = get_word(statement, i)
             i += len(word) + 1
-            tokens.append(booleanParse(word))
+            tokens.append(not booleanParse(word))
         elif word[:3] == "non":
             nonList = word.split("-")
             if nonList[-1] != "non":
@@ -175,7 +175,16 @@ def conditionalToArray(statement, i):
                         tokens.append("LEQ")
                     else:
                         print("AS expected in comparison")
-
+            else: 
+                tokens.append("EQ") 
+                if len(tokens) != 0 and type(tokens[-1]) == list:
+                    x = tokens[-1]
+                    s = x[0]
+                    s += " " + word
+                    x[0] = s
+                    tokens[-1] = x
+                else:
+                    tokens.append([word])
         elif word in ("isn't", "ain't"):
             tokens.append("INEQ")
         else:
@@ -189,7 +198,7 @@ def conditionalToArray(statement, i):
                 tokens.append([word])
     return tokens
 
-# OR, AND, INEQ, LEQ, GEQ, LT, GT, STRICTEQ
+# OR, AND, STRICTEQ, INEQ, LEQ, GEQ, LT, GT
 #if either value is string, they are coerced to string, if both are numerical they are compared as that
 def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
     value = tokens[0]
@@ -197,25 +206,75 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
     queued = None
     for i in range(1, len(tokens)):
         if queued != None:
+            # extract next variable 
             if type(tokens[i]) == list:
                 var = tokens[i][0]
                 next = ctx[var]
-                if queued = "OR":
-                    if value in FALSY:
-                        value = next
-                elif queued = "AND":
-                    if value not in FALSY:
-                        value = next
-                elif queued = "INEQ":
+            else: 
+                next = tokens[i]
 
+            # check for string coercion between variables 
+            string_coercion = False 
+            if type(value) == str or type(next) == str: 
+                string_coercion = True 
+            
+            # begin to evaluate based on queued action 
+            if queued == "OR":
+                if value in FALSY:
+                    value = next
+            elif queued == "AND":
+                if value not in FALSY:
+                    value = next
+            elif queued == "STRICTEQ": 
+                value = (value == next)
+            elif queued in ("EQ", "INEQ"): 
+                # check for type coerction (bool and string) 
+                if type(value) == bool or type(next) == bool: 
+                    value = booleanParse(value) 
+                    next = booleanParse(next) 
+                elif string_coercion: 
+                    value = str(value) 
+                    next = str(next) 
+                #evaluate 
+                if queued == "EQ": 
+                    value == (value == next) 
+                else: 
+                    value = (value != next) 
+
+            # comparison 
+            else: 
+                # check for type coercion 
+                if string_coercion: 
+                    value = str(value)
+                    next = str(value) 
+                else: 
+                    if value == True: 
+                        value = 1 
+                    elif value == False or value == None: 
+                        value = 0
+                    if next == True: 
+                        next = 1 
+                    elif next == False or next == None: 
+                        next = 0
+                #evaluate 
+                if queued == "LEQ": 
+                    value = (value <= next) 
+                elif queued == "GEQ": 
+                    value = (value >= next) 
+                elif queued == "LT": 
+                    value = (value < next) 
+                elif queued == "GT": 
+                    value = (value > next) 
+            # reset action queue and next variable 
+            next = None 
+            queued = None 
+        # no action in queue 
         else:
             if type(tokens[i]) == list:
                 var = tokens[i][0]
                 next = var
-            elif tokens[i] == True:
-                next = True
-            elif tokens[i] == False:
-                next = False
+            elif type(tokens[i]) == bool:
+                next = tokens[i]
             else:
                 queued = tokens[i]
     return value
@@ -335,6 +394,7 @@ def generate_trees(statement):
                 d[0]["value"] = [arr_name]
             return d
         else:
+            pass
             #FILIPPOS WRITE HERE
 
     elif " at " in statement:
@@ -412,12 +472,13 @@ def generate_trees(statement):
 # print(d)
 # print(find_quotes_in_expression("\"donkey\" \"doop"))
 # print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
+# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
 # print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-print(generate_trees("he holds a gun"))
+# print(generate_trees("he holds a gun"))
 
-# print(conditionalToArray("me and you or my dream", 0))
+tokens = conditionalToArray("bigI and bigI or mega", 0)
+print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
