@@ -51,15 +51,26 @@ def contains(string, list):
             return True
 
 def handle_variable_names(variable):
+    if " at " in variable:
+        return handle_array(variable)
     if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
         return {"action":"pronoun", "value":"variable"}
     if len(variable.split(" ")) == 3 or (len(variable.split(" ")) == 2 and not contains(variable, ("a", "an", "the", "my", "your", "our"))):
         return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
     return variable.lower()
 
+def handle_array(variable):
+    if variable[:3] == "at ":
+        return [handle_expression(i.strip()) for i in variable.split("at ") if i != ""]
+    if " at " not in variable:
+        return {"action":"get_array", "value":[variable, []]}
+    return {"action":"get_array", "value":[handle_variable_names(variable[:variable.find(" at ")]), handle_array(variable[variable.find(" at ") + 1:])]}
+
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
-    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2:
+    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2 and expression[0] == '"' and expression[-1] == '"':
         return re.sub("\"\"", "\"", expression[1:-1])
+    elif "," in expression:
+        return [handle_expression(i.strip()) for i in re.split(" *,", expression) if i is not None and i not in (",", " ,")]
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
         return float("".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")]))))
@@ -79,10 +90,7 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         try:
             return float(expression)
         except ValueError:
-            if expression.count("\"") > 2:
-                quotes = find_quotes_in_expression(expression)
-                pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
-            elif contains(expression, ("+", "with", "plus")):
+            if contains(expression, ("+", "with", "plus")):
                 d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and i != "" and not (i in ('with', 'plus'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
@@ -123,7 +131,7 @@ def conditionalToArray(statement, i):
         elif word in ("not"):
             word = get_word(statement, i)
             i += len(word) + 1
-            tokens.append(booleanParse(word))
+            tokens.append(not booleanParse(word))
         elif word[:3] == "non":
             nonList = word.split("-")
             if nonList[-1] != "non":
@@ -181,7 +189,16 @@ def conditionalToArray(statement, i):
                         tokens.append("LEQ")
                     else:
                         print("AS expected in comparison")
-
+            else: 
+                tokens.append("EQ") 
+                if len(tokens) != 0 and type(tokens[-1]) == list:
+                    x = tokens[-1]
+                    s = x[0]
+                    s += " " + word
+                    x[0] = s
+                    tokens[-1] = x
+                else:
+                    tokens.append([word])
         elif word in ("isn't", "ain't"):
             tokens.append("INEQ")
         else:
@@ -195,9 +212,86 @@ def conditionalToArray(statement, i):
                 tokens.append([word])
     return tokens
 
+# OR, AND, STRICTEQ, INEQ, LEQ, GEQ, LT, GT
 #if either value is string, they are coerced to string, if both are numerical they are compared as that
-def parseConditionalArray(tokens):
-    pass
+def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
+    value = tokens[0]
+    next = None
+    queued = None
+    for i in range(1, len(tokens)):
+        if queued != None:
+            # extract next variable 
+            if type(tokens[i]) == list:
+                var = tokens[i][0]
+                next = ctx[var]
+            else: 
+                next = tokens[i]
+
+            # check for string coercion between variables 
+            string_coercion = False 
+            if type(value) == str or type(next) == str: 
+                string_coercion = True 
+            
+            # begin to evaluate based on queued action 
+            if queued == "OR":
+                if value in FALSY:
+                    value = next
+            elif queued == "AND":
+                if value not in FALSY:
+                    value = next
+            elif queued == "STRICTEQ": 
+                value = (value == next)
+            elif queued in ("EQ", "INEQ"): 
+                # check for type coerction (bool and string) 
+                if type(value) == bool or type(next) == bool: 
+                    value = booleanParse(value) 
+                    next = booleanParse(next) 
+                elif string_coercion: 
+                    value = str(value) 
+                    next = str(next) 
+                #evaluate 
+                if queued == "EQ": 
+                    value == (value == next) 
+                else: 
+                    value = (value != next) 
+
+            # comparison 
+            else: 
+                # check for type coercion 
+                if string_coercion: 
+                    value = str(value)
+                    next = str(value) 
+                else: 
+                    if value == True: 
+                        value = 1 
+                    elif value == False or value == None: 
+                        value = 0
+                    if next == True: 
+                        next = 1 
+                    elif next == False or next == None: 
+                        next = 0
+                #evaluate 
+                if queued == "LEQ": 
+                    value = (value <= next) 
+                elif queued == "GEQ": 
+                    value = (value >= next) 
+                elif queued == "LT": 
+                    value = (value < next) 
+                elif queued == "GT": 
+                    value = (value > next) 
+            # reset action queue and next variable 
+            next = None 
+            queued = None 
+        # no action in queue 
+        else:
+            if type(tokens[i]) == list:
+                var = tokens[i][0]
+                next = var
+            elif type(tokens[i]) == bool:
+                next = tokens[i]
+            else:
+                queued = tokens[i]
+    return value
 
 
 
@@ -257,7 +351,25 @@ def generate_trees(statement):
         return d
 
     elif word in ["rock"]:
-        if contains(statement, [" at "]):
+        if " like " in statement:
+            pos = statement.find(" like ")
+            var_name = statement[5:pos]
+            return {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(statement[pos+1:])]}
+        pos = re.search("(?<=(rock )).*(at ([0-9]|.*))*(?=(( using)|( with)))", statement)
+        arr_name = statement[5:pos.end() if pos is not None else len(statement)]
+        d = {"action":"", "value":[handle_array(arr_name)]}
+        if " using " in statement:
+            d["action"] = "replace" #makes the stuff into a list and replaces at that level 
+            d["value"].append(handle_expression(statement[statement.find(" using ") + 7:]))
+        if " with " in statement:
+            d["action"] = "append"
+            d["value"].append(handle_expression(statement[statement.find(" with ") + 6:]))
+        else: 
+            d["action"] = "assign_array"
+        return d
+
+    elif word in ["rock"]:
+        if contains(statement, "at"):
             arr_name = ""
             d = [{"action":"assign array", "value": ""}]
             i += len(word) + 1
@@ -298,9 +410,6 @@ def generate_trees(statement):
             #     i += len(word) + 1
             #     word = get_word(statement,i)
             #     while i
-
-
-
 
     elif " at " in statement:
         d = {}
@@ -383,6 +492,16 @@ def generate_trees(statement):
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
+<<<<<<< HEAD
 print(generate_trees("rock array 1"))
+=======
+# print(generate_trees("he holds a gun"))
+>>>>>>> 4d70bff82b6d7c2eade9db2d787a73b8c7eefb85
 
+tokens = conditionalToArray("bigI and bigI or mega", 0)
+print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
+print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
+print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
+print(generate_trees("jimmy is dying"))
+# print(handle_array("jimmy"))
 # print(conditionalToArray("me and you or my dream", 0))
