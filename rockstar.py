@@ -335,7 +335,12 @@ def generate_trees(statement):
     elif word == "if":
         d = {"action": "if", "value": "expression"}
         i += len(word) + 1
-        tokens = conditionalToArray(statement, i)
+
+        # regex to search for end of "expression" -> find action words that are after the "if"
+        # re.search() returns match object that can return start and end indexes to splice expression
+        # update i to be after expression
+
+        tokens = conditionalToArray(statement, i) # statement is spliced expression
         next_d = parseConditionalArray(tokens)
         d["value"] = next_d
         return d
@@ -347,8 +352,14 @@ def generate_trees(statement):
         d["value"][1] = next_d
         return d
 
-    elif word in ("oh", "yeah", "baby"):
-        d = {"action":"end flow", "value": word}
+    elif word[-2:] == "oh":
+        i += len(word) + 1
+        d = {"action": "end flow", "value": [word, "count"]}
+        d["value"][1] = len(word) - 2
+        return d
+    elif word in ("yeah", "baby"):
+        i += len(word) + 1
+        d = {"action":"end flow", "value": [word, 1]}
         return d
 
     elif word in ["rock"]:
