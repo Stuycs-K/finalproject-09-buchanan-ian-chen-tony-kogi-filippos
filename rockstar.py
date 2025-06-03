@@ -189,8 +189,8 @@ def conditionalToArray(statement, i):
                         tokens.append("LEQ")
                     else:
                         print("AS expected in comparison")
-            else: 
-                tokens.append("EQ") 
+            else:
+                tokens.append("EQ")
                 if len(tokens) != 0 and type(tokens[-1]) == list:
                     x = tokens[-1]
                     s = x[0]
@@ -220,69 +220,69 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
     queued = None
     for i in range(1, len(tokens)):
         if queued != None:
-            # extract next variable 
+            # extract next variable
             if type(tokens[i]) == list:
                 var = tokens[i][0]
                 next = ctx[var]
-            else: 
+            else:
                 next = tokens[i]
 
-            # check for string coercion between variables 
-            string_coercion = False 
-            if type(value) == str or type(next) == str: 
-                string_coercion = True 
-            
-            # begin to evaluate based on queued action 
+            # check for string coercion between variables
+            string_coercion = False
+            if type(value) == str or type(next) == str:
+                string_coercion = True
+
+            # begin to evaluate based on queued action
             if queued == "OR":
                 if value in FALSY:
                     value = next
             elif queued == "AND":
                 if value not in FALSY:
                     value = next
-            elif queued == "STRICTEQ": 
+            elif queued == "STRICTEQ":
                 value = (value == next)
-            elif queued in ("EQ", "INEQ"): 
-                # check for type coerction (bool and string) 
-                if type(value) == bool or type(next) == bool: 
-                    value = booleanParse(value) 
-                    next = booleanParse(next) 
-                elif string_coercion: 
-                    value = str(value) 
-                    next = str(next) 
-                #evaluate 
-                if queued == "EQ": 
-                    value == (value == next) 
-                else: 
-                    value = (value != next) 
-
-            # comparison 
-            else: 
-                # check for type coercion 
-                if string_coercion: 
+            elif queued in ("EQ", "INEQ"):
+                # check for type coerction (bool and string)
+                if type(value) == bool or type(next) == bool:
+                    value = booleanParse(value)
+                    next = booleanParse(next)
+                elif string_coercion:
                     value = str(value)
-                    next = str(value) 
-                else: 
-                    if value == True: 
-                        value = 1 
-                    elif value == False or value == None: 
+                    next = str(next)
+                #evaluate
+                if queued == "EQ":
+                    value == (value == next)
+                else:
+                    value = (value != next)
+
+            # comparison
+            else:
+                # check for type coercion
+                if string_coercion:
+                    value = str(value)
+                    next = str(value)
+                else:
+                    if value == True:
+                        value = 1
+                    elif value == False or value == None:
                         value = 0
-                    if next == True: 
-                        next = 1 
-                    elif next == False or next == None: 
+                    if next == True:
+                        next = 1
+                    elif next == False or next == None:
                         next = 0
-                #evaluate 
-                if queued == "LEQ": 
-                    value = (value <= next) 
-                elif queued == "GEQ": 
-                    value = (value >= next) 
-                elif queued == "LT": 
-                    value = (value < next) 
-                elif queued == "GT": 
-                    value = (value > next) 
-            # reset action queue and next variable 
-            next = None 
-            queued = None 
-        # no action in queue 
+                #evaluate
+                if queued == "LEQ":
+                    value = (value <= next)
+                elif queued == "GEQ":
+                    value = (value >= next)
+                elif queued == "LT":
+                    value = (value < next)
+                elif queued == "GT":
+                    value = (value > next)
+            # reset action queue and next variable
+            next = None
+            queued = None
+        # no action in queue
         else:
             if type(tokens[i]) == list:
                 var = tokens[i][0]
@@ -338,8 +338,15 @@ def generate_trees(statement):
         d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp)]}
         return d
 
-    elif word in ("if", "while", "until"):
-        d = {"action":"flow control", "value": [word, "expression"]}
+    elif word == "if":
+        d = {"action": "if", "value": "expression"}
+        i += len(word) + 1
+        tokens = conditionalToArray(statement, i)
+        next_d = parseConditionalArray(tokens)
+        d["value"] = next_d
+        return d
+    elif word in ("while", "until"):
+        d = {"action": "loop", "value": [word, "expression", "trees"]}
         i += len(word) + 1
         tokens = conditionalToArray(statement, i)
         next_d = parseConditionalArray(tokens)
@@ -359,12 +366,12 @@ def generate_trees(statement):
         arr_name = statement[5:pos.end() if pos is not None else len(statement)]
         d = {"action":"", "value":[handle_array(arr_name)]}
         if " using " in statement:
-            d["action"] = "replace" #makes the stuff into a list and replaces at that level 
+            d["action"] = "replace" #makes the stuff into a list and replaces at that level
             d["value"].append(handle_expression(statement[statement.find(" using ") + 7:]))
         if " with " in statement:
             d["action"] = "append"
             d["value"].append(handle_expression(statement[statement.find(" with ") + 6:]))
-        else: 
+        else:
             d["action"] = "assign_array"
         return d
 
