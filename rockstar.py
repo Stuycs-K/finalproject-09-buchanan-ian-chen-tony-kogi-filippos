@@ -45,15 +45,26 @@ def contains(string, list):
             return True
 
 def handle_variable_names(variable):
+    if " at " in variable:
+        return handle_array(variable)
     if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
         return {"action":"pronoun", "value":"variable"}
     if len(variable.split(" ")) == 3 or (len(variable.split(" ")) == 2 and not contains(variable, ("a", "an", "the", "my", "your", "our"))):
         return " ".join([i[0] + i[1:].lower() for i in variable.split(" ")])
     return variable.lower()
 
+def handle_array(variable):
+    if variable[:3] == "at ":
+        return [handle_expression(i.strip()) for i in variable.split("at ") if i != ""]
+    if " at " not in variable:
+        return {"action":"get_array", "value":[variable, []]}
+    return {"action":"get_array", "value":[handle_variable_names(variable[:variable.find(" at ")]), handle_array(variable[variable.find(" at ") + 1:])]}
+
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
-    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2:
+    if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2 and expression[0] == '"' and expression[-1] == '"':
         return re.sub("\"\"", "\"", expression[1:-1])
+    elif "," in expression:
+        return [handle_expression(i.strip()) for i in re.split(" *,", expression) if i is not None and i not in (",", " ,")]
     elif get_word(expression, 0) in ("so", "like"):
         word = get_word(expression, 0)
         return float("".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression[len(word) + 1:].split(" ")]))))
@@ -73,10 +84,7 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         try:
             return float(expression)
         except ValueError:
-            if expression.count("\"") > 2:
-                quotes = find_quotes_in_expression(expression)
-                pairs_quotes = [[quotes[i], quotes[i+1]] for i in range(0, len(quotes) - 1)]
-            elif contains(expression, ("+", "with", "plus")):
+            if contains(expression, ("+", "with", "plus")):
                 d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and i != "" and not (i in ('with', 'plus'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
@@ -337,32 +345,21 @@ def generate_trees(statement):
         return d
 
     elif word in ["rock"]:
-        arr_name = ""
-        d = [{"action":"assign array", "value": ""}]
-        i += len(word) + 1
-        word = get_word(statement,i)
-        while word != "at" and i < len(statement):
-            if (len(arr_name) != 0):
-                arr_name += " "
-            arr_name += word
-            print(word)
-            i += len(word) + 1
-            word = get_word(statement,i)
-        if word == "at":
-            i += len(word) + 1
-            word = get_word(statement,i)
-
-            # while (word != is and i < len(statement)):.
-
-            # if word in NUMBERS:
-                # index = word
-                # i += len(word) + 1
-                # word = get_word(statement,i)
-                #
-            # else:
-                 # raise Exception("index or key is required for array assignment")
-        else:
-            d[0]["value"] = [arr_name]
+        if " like " in statement:
+            pos = statement.find(" like ")
+            var_name = statement[5:pos]
+            return {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(statement[pos+1:])]}
+        pos = re.search("(?<=(rock )).*(at ([0-9]|.*))*(?=(( using)|( with)))", statement)
+        arr_name = statement[5:pos.end() if pos is not None else len(statement)]
+        d = {"action":"", "value":[handle_array(arr_name)]}
+        if " using " in statement:
+            d["action"] = "replace" #makes the stuff into a list and replaces at that level 
+            d["value"].append(handle_expression(statement[statement.find(" using ") + 7:]))
+        if " with " in statement:
+            d["action"] = "append"
+            d["value"].append(handle_expression(statement[statement.find(" with ") + 6:]))
+        else: 
+            d["action"] = "assign_array"
         return d
 
     elif word in ["rock"]:
@@ -482,3 +479,8 @@ def generate_trees(statement):
 
 tokens = conditionalToArray("bigI and bigI or mega", 0)
 print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
+print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
+print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
+print(generate_trees("jimmy is dying"))
+# print(handle_array("jimmy"))
+# print(conditionalToArray("me and you or my dream", 0))
