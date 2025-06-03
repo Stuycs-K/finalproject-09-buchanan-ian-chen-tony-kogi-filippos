@@ -26,3 +26,6 @@ I started working on poetic numbers and I made pronouns functional as well.
 
 ### 2025-05-30 Worked on poetic strings
 I finished poetic numbers and started working on poetic strings
+
+### 2025-05-02 Worked on arrays
+I allowed for array assignment nested arrays and other "rock" features
