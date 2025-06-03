@@ -44,7 +44,9 @@ def contains(string, list):
         if string.find(i) != -1:
             return True
 
-def handle_variable_names(variable):
+def handle_variable_names(variable, ctx=[]):
+    if variable in ctx:
+        return handle_expression(variable)
     if " at " in variable:
         return handle_array(variable)
     if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
@@ -57,8 +59,8 @@ def handle_array(variable):
     if variable[:3] == "at ":
         return [handle_expression(i.strip()) for i in variable.split("at ") if i != ""]
     if " at " not in variable:
-        return {"action":"get_array", "value":[variable, []]}
-    return {"action":"get_array", "value":[handle_variable_names(variable[:variable.find(" at ")]), handle_array(variable[variable.find(" at ") + 1:])]}
+        return {"action":"get_array", "value":[handle_expression(variable), []]} #MAKE THIS WORK 
+    return {"action":"get_array", "value":[handle_expression(handle_variable_names(variable[:variable.find(" at ")])), handle_array(variable[variable.find(" at ") + 1:])]}
 
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
     if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2 and expression[0] == '"' and expression[-1] == '"':
@@ -333,7 +335,7 @@ def generate_trees(statement):
         return d
 
     elif word in ("if", "while", "until"):
-        d = {"action":"flow control", "value": [word, "expression"]}
+        d = {"action":"flow control", "value": [word, "expression"  ]}
         i += len(word) + 1
         tokens = conditionalToArray(statement, i)
         next_d = parseConditionalArray(tokens)
@@ -361,39 +363,6 @@ def generate_trees(statement):
         else: 
             d["action"] = "assign_array"
         return d
-
-    elif word in ["rock"]:
-        if contains(statement, "at"):
-            arr_name = ""
-            d = [{"action":"assign array", "value": ""}]
-            i += len(word) + 1
-            word = get_word(statement,i)
-            while word != "at" and i < len(statement):
-                if (len(arr_name) != 0):
-                    arr_name += " "
-                arr_name += word
-                print(word)
-                i += len(word) + 1
-                word = get_word(statement,i)
-            if word == "at":
-                i += len(word) + 1
-                word = get_word(statement,i)
-                # while (word != is and i < len(statement)):.
-
-                # if word in NUMBERS:
-                    # index = word
-                    # i += len(word) + 1
-                    # word = get_word(statement,i)
-                    #
-                # else:
-                     # raise Exception("index or key is required for array assignment")
-            else:
-                d[0]["value"] = [arr_name]
-            return d
-        else:
-            pass
-            #FILIPPOS WRITE HERE
-
     elif " at " in statement:
         d = {}
         arr_name = ""
@@ -456,6 +425,35 @@ def generate_trees(statement):
             d["value"][1] = handle_expression(statement[start + 1:])
             return d
 
+# def interpret_trees(li, ctx):
+    # for i in li:
+
+def add(parts):
+    sum = 0
+    for i in parts:
+        if type(sum) is str or #parts contains a string:
+            return
+        elif type(sum) is int or type(sum) is float:   
+            if type(i) is float or type(i) is int:
+                sum += i
+            elif type(i) is str:
+                sum = str(sum)
+                sum += i
+            elif type(i) is bool:
+                if i:
+                    sum += 1
+            elif i is None:
+            
+            
+            
+
+            
+def interpret_dict(dict):
+    if type(dict) is float or type(dict) is int or type(dict) is str:
+        return 
+    if dict["action"] == "add":
+        return add()
+
 
 # print(process_program("print cheese. b is empty"))
 # float("sada")
@@ -477,10 +475,13 @@ def generate_trees(statement):
 # print(generate_trees("Let the total be the price + the tax"))
 # print(generate_trees("he holds a gun"))
 
-tokens = conditionalToArray("bigI and bigI or mega", 0)
-print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
-print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
-print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
-print(generate_trees("jimmy is dying"))
+# tokens = conditionalToArray("bigI and bigI or mega", 0)
+# print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
+# print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
+# print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
+# print(generate_trees("jimmy is dying"))
+
+print(process_program("print \"cheese\". cheese is 5. rock cheese. fries is 5 + 5 + 2"))
+#MAKE CHEESE CALL THE VARIABLE
 # print(handle_array("jimmy"))
 # print(conditionalToArray("me and you or my dream", 0))
