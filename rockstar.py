@@ -5,6 +5,12 @@ FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
 NUMBERS = ["1","2","3","4","5","6","7","8","9"]
 
+def isNumber(word):
+    for i in range(len(word)):
+        if word[i] not in NUMBERS:
+            return False
+    return True
+
 def get_word(statement, index):
     statement = statement[index:]
     end = statement.find(" ")
@@ -409,8 +415,19 @@ def generate_trees(statement):
                 d[0]["value"] = [arr_name]
             return d
         else:
-            pass
-            #FILIPPOS WRITE HERE
+            name = ""
+            i += len(word) + 1
+            word = get_word(statement,i)
+            while (word not in ["with","holds","like"] and not isNumber(word)):
+                name += word
+                i += len(word) + 1
+                word = get_word(statement,i)
+            if isNumber(word):
+                return [{"action":"assign array", "value": [name,chr(int(word))]}]
+            # elif word == "with":
+            #     i += len(word) + 1
+            #     word = get_word(statement,i)
+            #     while i
 
     elif " at " in statement:
         d = {}
@@ -493,7 +510,11 @@ def generate_trees(statement):
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
+<<<<<<< HEAD
+print(generate_trees("rock array 1"))
+=======
 # print(generate_trees("he holds a gun"))
+>>>>>>> 4d70bff82b6d7c2eade9db2d787a73b8c7eefb85
 
 tokens = conditionalToArray("bigI and bigI or mega", 0)
 print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))

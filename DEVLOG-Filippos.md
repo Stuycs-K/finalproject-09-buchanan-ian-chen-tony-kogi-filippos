@@ -26,4 +26,12 @@ I got the dictionary working for simple cases, but had to create a new type for 
 looked at more examples of initializing arrays, and discovered that you can initialize by placing values at an indice.
 worked on the rock array part more, but didn't finish
 
+### 2025-05-30 - more on rock array
+tested my earlier functions and added more key words. I got stuck at this  part that
+allows you to create an array within an array within an array within...
+Basically got stuck on how to convert that into a dictioanry
+
+### 2025-06-02 - started working on ninja strings
+looked at documentation of ninja strings for a while, also to understand poetic numbers
+I started writing something but I keep getting stuck when there is a kind of recursion involved
 
