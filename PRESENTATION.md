@@ -4,8 +4,8 @@
 Explain importance of esoteric languages and their uses 
 
 ## What is rockstar? 
-[Link text](https://codewithrockstar.com/) 
-Pasted above is the website of the rockstar language we have created an interpreter for. In it contains a documentation page that extensively describes the function of each word in the program and how these words come 
+[Rockstar Home](https://codewithrockstar.com/) 
+Pasted is the website of the rockstar language we have created an interpreter for. In it contains a documentation page that extensively describes the function of each word in the program and how these words come 
 together to create an actual programming language. 
 
 The words used in the rockstar programming language are based on lyrics to "1980s hard rock and power ballads." This makes for a beautifully poetic language that can also do things that you might want to do in a language 

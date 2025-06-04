@@ -723,9 +723,10 @@ ctx = {"bigI": "1", "mega": 2, "five": 0}
 #eval = parseConditionalArray(tokens, ctx) 
 #print(tokens) 
 #print(eval) 
-print(generate_trees("if 0 is five", ctx))
-x = (0 == 0) 
-print(x) 
+# print(generate_trees("if 0 is five", ctx))
+
+li = ["if true", "print 1"] 
+run_program(li, ctx) 
 #print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
 #print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
 #print(generate_trees("jimmy is dying"))
@@ -747,7 +748,7 @@ print(x)
 ctx = {}
 # run_program(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
 # print(process_program("john at 4 is 1", ctx))
-print(generate_trees("tim at 1 is 5", ctx))
+# print(generate_trees("tim at 1 is 5", ctx))
 #test more ROCK, FIX AT 
 # print(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
 
