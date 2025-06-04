@@ -1,6 +1,7 @@
 import math
 import re
 import itertools
+import sys
 
 FLOW_CONTROL = ("if", "while", "until")
 FALSY = ("wrong", "no", "lies", "false","nothing", "nowhere", "nobody", "gone", "null", "mysterious", 0, "", None) #everything else is truthy
@@ -723,18 +724,6 @@ def interpret_dict(dict, ctx):
             b[-1] = int(b[-1])
         d[b[-1]] = interpret_dict(dict["value"][1], ctx)
 
-def run_program(li, ctx):
-    # print(li)
-        print(interpret_dict(dict["value"], ctx))
-    if dict["action"] == "if": 
-        exp = dict["value"] 
-        return ["if", exp]
-    if dict["action"] == "else": 
-        tree = dict["value"] 
-        return ["else", tree] 
-    if dict["action"] == "end flow": 
-        count = dict["value"][1] 
-        return ["end flow", count]
 
 
 def run_program(li, ctx={"cheese":5}):
@@ -765,65 +754,10 @@ def run_program(li, ctx={"cheese":5}):
         if type(output) == list and output[0] == "end flow": 
             count = output[1] 
             if_counter = max(if_counter - count, 0) 
-        
 
-# print(process_program("print cheese. b is empty"))
-# float("sada")
-
-# print(check_for_ops_in_expression("\"donkey\" \"doop"))
-
-# print(generate_trees("M at 0 is me"))
-
-# print(get_word("let him be me", 11))
-# d = generate_trees("put true into my var")
-# print(d)
-# print(find_quotes_in_expression("\"donkey\" \"doop"))
-# print(re.split("\*|(times)|(of)","1 * 2 times 3"))
-# print(generate_trees("put 1 * 2 times 3 + 5 / 3 - 10 into the b"))
-# print(generate_trees("the b's 1 * 2 times 3 + 5 / 3 - 10"))
-# print(generate_trees("let the b be 1 * 2 times 3 + 5 / 3 - 10"))
-# print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
-# print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
-# print(generate_trees("Let the total be the price + the tax"))
-#print(generate_trees("rock array 1"))
-# print(generate_trees("he holds a gun"))
-
-ctx = {"bigI": "1", "mega": 2, "five": 0}
-#tokens = conditionalToArray("0 is five", 0, ctx)
-#eval = parseConditionalArray(tokens, ctx) 
-#print(tokens) 
-#print(eval) 
-# print(generate_trees("if 0 is five", ctx))
-
-li = ["if true", "print 1"] 
-run_program(li, ctx) 
-#print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
-#print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
-#print(generate_trees("jimmy is dying"))
-# print(handle_array("jimmy"))
-# print(conditionalToArray("me and you or my dream", 0))
-
-
-# tokens = conditionalToArray("bigI and bigI or mega", 0)
-# print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
-# print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
-# print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
-# print(generate_trees("jimmy is dying"))
-
-# print(process_program("print \"cheese\". cheese is 5. rock cheese. fries is 5 + 5 + 2"))
-# print(interpret_dict({"action":"add", "value":[None, 1, 2.0, "cheese", True]}))
-# print(generate_trees("he is over 5"))
-# print(interpret_dict({"action":"multiply", "value":["cheese", 1/-0.24]}))
-# print(interpret_dict({"action":"divide", "value":["cheese", 0.24]}))
+out = ""
+with open(sys.argv[1], "r") as f:
+    out = f.read()
+    
 ctx = {}
-# run_program(process_program("rock cheese at 1. cheese at 2 is 5. print cheese.", ctx), ctx)
-# print(ctx)
-# print(process_program("john at 4 is 1", ctx))
-print(generate_trees("tim at 1 is 5", ctx))
-#test more ROCK, FIX AT 
-# print(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
-
-# print(parseConditionalArray(conditionalToArray("bigI and \"cheese\"", 0)))
-#MAKE CHEESE CALL THE VARIABLE
-# print(handle_array("jimmy"))
-# print(conditionalToArray("me and you or my dream", 0))
+run_program(process_program(out, ctx), ctx)
