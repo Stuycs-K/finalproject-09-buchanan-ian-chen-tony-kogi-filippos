@@ -121,7 +121,7 @@ def booleanParse(word):
     else:
         return True
 
-def conditionalToArray(statement, i):
+def conditionalToArray(statement, i, ctx):
     tokens = []
     while i < len(statement):
         word = get_word(statement, i)
@@ -208,77 +208,91 @@ def conditionalToArray(statement, i):
                 s += " " + word
                 x[0] = s
                 tokens[-1] = x
-            else:
+            elif word in ctx:
                 tokens.append([word])
+            else: 
+                if word[0] == "\"" and word[-1] == "\"": 
+                    tokens.append(word)
+                else: 
+                    tokens.append(int(word)) 
     return tokens
+
+def comparisonEval(value1, queued, next): 
+    #print(value1, queued, next) 
+    value = value1 
+    # check for string coercion between variables
+    string_coercion = False
+    if type(value) == str or type(next) == str:
+        string_coercion = True
+
+    # begin to evaluate based on queued action
+    if queued == "OR":
+        if value in FALSY:
+            value = next
+    elif queued == "AND":
+        if value not in FALSY:
+            value = next
+    elif queued == "STRICTEQ":
+        value = (value == next)
+    elif queued in ("EQ", "INEQ"):
+        # check for type coerction (bool and string)
+        if type(value) == bool or type(next) == bool:
+            value = booleanParse(value)
+            next = booleanParse(next)
+        elif string_coercion:
+            value = str(value)
+            next = str(next)
+        #evaluate
+        if queued == "EQ":
+            value = (value == next)
+        else:
+            value = (value != next)
+
+    # comparison
+    else:
+        # check for type coercion
+        if string_coercion:
+            value = str(value)
+            next = str(value)
+        else:
+            if value == True:
+                value = 1
+            elif value == False or value == None:
+                value = 0
+            if next == True:
+                next = 1
+            elif next == False or next == None:
+                next = 0
+        #evaluate
+        if queued == "LEQ":
+            value = (value <= next)
+        elif queued == "GEQ":
+            value = (value >= next)
+        elif queued == "LT":
+            value = (value < next)
+        elif queued == "GT":
+            value = (value > next)
+    return value 
+        
 
 # OR, AND, STRICTEQ, INEQ, LEQ, GEQ, LT, GT
 #if either value is string, they are coerced to string, if both are numerical they are compared as that
-def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
+def parseConditionalArray(tokens, ctx):
     value = tokens[0]
     next = None
     queued = None
+    #print(len(tokens)) 
+    #print(value, queued, next)
     for i in range(1, len(tokens)):
         if queued != None:
-            # extract next variable
             if type(tokens[i]) == list:
                 var = tokens[i][0]
                 next = ctx[var]
+                #print(var) 
+                #print(next) 
             else:
                 next = tokens[i]
-
-            # check for string coercion between variables
-            string_coercion = False
-            if type(value) == str or type(next) == str:
-                string_coercion = True
-
-            # begin to evaluate based on queued action
-            if queued == "OR":
-                if value in FALSY:
-                    value = next
-            elif queued == "AND":
-                if value not in FALSY:
-                    value = next
-            elif queued == "STRICTEQ":
-                value = (value == next)
-            elif queued in ("EQ", "INEQ"):
-                # check for type coerction (bool and string)
-                if type(value) == bool or type(next) == bool:
-                    value = booleanParse(value)
-                    next = booleanParse(next)
-                elif string_coercion:
-                    value = str(value)
-                    next = str(next)
-                #evaluate
-                if queued == "EQ":
-                    value == (value == next)
-                else:
-                    value = (value != next)
-
-            # comparison
-            else:
-                # check for type coercion
-                if string_coercion:
-                    value = str(value)
-                    next = str(value)
-                else:
-                    if value == True:
-                        value = 1
-                    elif value == False or value == None:
-                        value = 0
-                    if next == True:
-                        next = 1
-                    elif next == False or next == None:
-                        next = 0
-                #evaluate
-                if queued == "LEQ":
-                    value = (value <= next)
-                elif queued == "GEQ":
-                    value = (value >= next)
-                elif queued == "LT":
-                    value = (value < next)
-                elif queued == "GT":
-                    value = (value > next)
+            value = comparisonEval(value, queued, next)
             # reset action queue and next variable
             next = None
             queued = None
@@ -291,13 +305,14 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
                 next = tokens[i]
             else:
                 queued = tokens[i]
+        #print(value, queued, next)
     return value
 
 
 
 # def get_next_word(statement, index, currWordLength):
 
-def generate_trees(statement):
+def generate_trees(statement, ctx):
     i = 0
     word = get_word(statement, i).lower()
     word = word.replace(",", "")
@@ -338,23 +353,19 @@ def generate_trees(statement):
         d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp)]}
         return d
 
-    elif word == "if":
+    elif word in ("if", "when"):
         d = {"action": "if", "value": "expression"}
         i += len(word) + 1
-
-        # regex to search for end of "expression" -> find action words that are after the "if"
-        # re.search() returns match object that can return start and end indexes to splice expression
-        # update i to be after expression
-
-        tokens = conditionalToArray(statement, i) # statement is spliced expression
-        next_d = parseConditionalArray(tokens)
+        tokens = conditionalToArray(statement, i, ctx) # statement is spliced expression
+        next_d = parseConditionalArray(tokens, ctx)
         d["value"] = next_d
         return d
+    
     elif word in ("while", "until"):
-        d = {"action": "loop", "value": [word, "expression", "trees"]}
+        d = {"action": "loop", "value": [word, "expression"]}
         i += len(word) + 1
-        tokens = conditionalToArray(statement, i)
-        next_d = parseConditionalArray(tokens)
+        tokens = conditionalToArray(statement, i, ctx)
+        next_d = parseConditionalArray(tokens, ctx)
         d["value"][1] = next_d
         return d
 
@@ -510,16 +521,21 @@ def generate_trees(statement):
 # print(generate_trees("let Jonny Cheese be 1 * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("let the STICKY B be cheese * 2 times 3 + 5 / 3 - 10"))
 # print(generate_trees("Let the total be the price + the tax"))
-<<<<<<< HEAD
-print(generate_trees("rock array 1"))
-=======
+#print(generate_trees("rock array 1"))
 # print(generate_trees("he holds a gun"))
->>>>>>> 4d70bff82b6d7c2eade9db2d787a73b8c7eefb85
 
-tokens = conditionalToArray("bigI and bigI or mega", 0)
-print(parseConditionalArray(tokens, {"bigI": "1", "mega": 2}))
-print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
-print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
-print(generate_trees("jimmy is dying"))
+ctx = {"bigI": "1", "mega": 2, "five": 0}
+#tokens = conditionalToArray("0 is five", 0, ctx)
+#eval = parseConditionalArray(tokens, ctx) 
+#print(tokens) 
+#print(eval) 
+print(generate_trees("if 0 is five", ctx))
+x = (0 == 0) 
+print(x) 
+#print(generate_trees("rock jimmy at 3 using 1,2, \"cheese\""))
+#print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
+#print(generate_trees("jimmy is dying"))
 # print(handle_array("jimmy"))
 # print(conditionalToArray("me and you or my dream", 0))
+
+
