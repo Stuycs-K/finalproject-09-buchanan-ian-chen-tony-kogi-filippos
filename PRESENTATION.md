@@ -26,6 +26,10 @@ action dictionaries describe.
 
 ## Printing 
 print, whisper, shout 
+print true 
+print 1
+print "hello world"
+print null
 
 ## Variable Assignment 
 <var> is <exp>

@@ -486,9 +486,9 @@ def generate_trees(statement, ctx):
 
 def add(a, b):
     if type(a) is dict:
-        a = interpret_dict(a)
+        a = interpret_dict(a, ctx)
     if type(b) is dict:
-        b = interpret_dict(b)
+        b = interpret_dict(b, ctx)
     if type(a) is float:
             try: 
                 a = int(a)
@@ -515,9 +515,9 @@ def add(a, b):
 
 def minus(a, b):
     if type(a) is dict:
-        a = interpret_dict(a)
+        a = interpret_dict(a,ctx)
     if type(b) is dict:
-        b = interpret_dict(b)
+        b = interpret_dict(b,ctx)
     if type(a) is float:
             try: 
                 a = int(a)
@@ -553,9 +553,9 @@ def minus(a, b):
     
 def mult(a, b):
     if type(a) is dict:
-        a = interpret_dict(a)
+        a = interpret_dict(a,ctx)
     if type(b) is dict:
-        b = interpret_dict(b)
+        b = interpret_dict(b,ctx)
     if a is None or (a == False and type(a) is bool): 
         a = 0
     if b is None or (b == False and type(b) is bool): 
@@ -583,9 +583,9 @@ def mult(a, b):
 
 def div(a, b):
     if type(a) is dict:
-        a = interpret_dict(a)
+        a = interpret_dict(a,ctx)
     if type(b) is dict:
-        b = interpret_dict(b)
+        b = interpret_dict(b,ctx)
     if type(b) is bool and b == True:
         b = 1
     if type(b) is str:
@@ -665,6 +665,8 @@ def interpret_dict(dict, ctx):
             except: 
                 pass
         return dict
+    if dict is None:
+        return "null"
     if dict["action"] == "get/poetic":
         if dict["value"] in ctx:
             return ctx[dict["value"]]
