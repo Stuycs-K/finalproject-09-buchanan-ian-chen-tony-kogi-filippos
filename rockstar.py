@@ -45,9 +45,7 @@ def contains(string, list):
         if string.find(i) != -1:
             return True
 
-def handle_variable_names(variable, ctx=[]  ):
-    if variable in ctx:
-        return handle_expression(variable)
+def handle_variable_names(variable, ctx):
     if " at " in variable:
         return handle_array(variable)
     if variable in ("it", "he", "she", "him", "her", "they", "them", "ze", "hir", "zie", "zir", "xe", "xem", "ve", "ver"):
@@ -60,8 +58,8 @@ def handle_array(variable):
     if variable[:3] == "at ":
         return [handle_expression(i.strip()) for i in variable.split("at ") if i != ""]
     if " at " not in variable:
-        return {"action":"get_array", "value":[handle_expression(variable), []]} #MAKE THIS WORK 
-    return {"action":"get_array", "value":[handle_expression(handle_variable_names(variable[:variable.find(" at ")])), handle_array(variable[variable.find(" at ") + 1:])]}
+        return {"action":"get_array", "value":[variable, []]} #MAKE THIS WORK 
+    return {"action":"get_array", "value":[handle_variable_names(variable[:variable.find(" at ")], ctx), handle_array(variable[variable.find(" at ") + 1:])]}
 
 def handle_expression(expression, ctx=["cheese", "the total", "the price", "the tax"]):
     if len(re.findall('((?<!")"(?!"))|((?<="")")', expression)) == 2 and expression[0] == '"' and expression[-1] == '"':
@@ -304,7 +302,11 @@ def generate_trees(statement, ctx):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
-        e = handle_expression(statement[i:], ctx)
+        if " at " in statement:
+            e = handle_array(statement[i:])
+            e["action"] = "print_array"
+        else:
+            e = handle_expression(statement[i:], ctx)
         d["value"] = e
         return d
 
@@ -319,7 +321,7 @@ def generate_trees(statement, ctx):
         word = get_word(statement, i)
         i += len(word) + 1
         word = statement[i:]
-        d["value"][0] = handle_variable_names(word)
+        d["value"][0] = handle_variable_names(word, ctx)
         return d
 
     elif (word == "let"):
@@ -333,7 +335,7 @@ def generate_trees(statement, ctx):
         exp = statement[i:]
         # print(word)
         # print(exp)
-        d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp, ctx)]}
+        d = {"action":"assign_variable", "value":[handle_variable_names(var_name, ctx), handle_expression(exp, ctx)]}
         return d
 
     elif word in ("if", "while", "until"):
@@ -352,7 +354,7 @@ def generate_trees(statement, ctx):
         if " like " in statement:
             pos = statement.find(" like ")
             var_name = statement[5:pos]
-            return {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(statement[pos+1:], ctx)]}
+            return {"action":"assign_variable", "value":[handle_variable_names(var_name, ctx), handle_expression(statement[pos+1:], ctx)]}
         pos = re.search("(?<=(rock )).*(at ([0-9]|.*))*(?=(( using)|( with)))", statement)
         arr_name = statement[5:pos.end() if pos is not None else len(statement)]
         d = {"action":"", "value":[handle_array(arr_name)]}
@@ -363,7 +365,8 @@ def generate_trees(statement, ctx):
             d["action"] = "append"
             d["value"].append(handle_expression(statement[statement.find(" with ") + 6:], ctx))
         else: 
-            d["action"] = "assign_array"
+            return d["value"][0]
+        
         return d
     # elif " at " in statement:
     #     d = {}
@@ -399,7 +402,7 @@ def generate_trees(statement, ctx):
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement:
             if " at " not in statement:
                 pos = re.search("( is)|( are)|( am)|( was)|( were)",statement)
-                d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()]), "value"]}
+                d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()], ctx), "value"]}
 
                 i = pos.end()
 
@@ -416,7 +419,7 @@ def generate_trees(statement, ctx):
                 return d
         if "'s" in statement or "'re" in statement:
             pos = re.search("('s)|('re)",statement).start()
-            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos], ctx), "value"]}
             i = pos
 
             word = get_word(statement, i)
@@ -427,10 +430,10 @@ def generate_trees(statement, ctx):
             start = re.search("( says)|( said)",statement).start()
             end = re.search("( says)|( said)",statement).end()
             str = statement[end+1:] if statement[end] == " " else statement[end:]
-            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"', ctx)]}
+            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip(), ctx), handle_expression('"' + str + '"', ctx)]}
         if contains(statement, ("holds")):
             start = re.search("( holds)",statement).start()
-            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:start]), "value"]}
+            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:start], ctx), "value"]}
             d["value"][1] = handle_expression(statement[start + 1:], ctx)
             return d
 
@@ -569,7 +572,47 @@ def compute(li, func):
         out = func(out, li[i])
     return out
 
-def interpret_dict(dict, ctx={"cheese":5}):
+def create_list(index):
+    dict = {}
+    curr = dict
+    for i in index: 
+        if type(i) is float or type(i) is int:
+            i = int(i)
+            for j in range(i+1):
+                curr[j] = {}
+        else:
+            curr[i] = {}
+        curr = curr[i]
+    return dict
+
+def list_to_string(dict):
+    out = "["
+    if dict == {}:
+        return "null, "
+    if type(dict) is int or type(dict) is float:
+        return str(dict) + ", "
+    if type(dict) is bool:
+        return str(dict).lower() + ", "
+    if type(dict) is str:
+        return dict + ", "
+    if dict is None:
+        return "null, "
+    b = [i for i in list(dict.keys()) if type(i) is int]
+    b.sort()
+    for i in b:
+        out += list_to_string(dict[i])
+    for i in [i for i in list(dict.keys()) if type(i) is not int]:
+        out += f"\"{i}\":" + list_to_string(dict[i]) + ", "
+    out += "]"
+    return out
+
+def get_dict(dict, index, ctx):
+    dict = ctx[dict]
+    for i in index:
+        dict = dict[int(i)]
+    return dict
+
+def interpret_dict(dict, ctx):
     if type(dict) is float or type(dict) is int or type(dict) is str:
         if type(dict) is float: 
             try: 
@@ -615,9 +658,33 @@ def interpret_dict(dict, ctx={"cheese":5}):
             return "/" + str(dict["value"][0])
         return compute(dict["value"], div)
     if dict["action"] == "print":
-        print(interpret_dict(dict["value"], ctx))
-    
-def run_program(li, ctx={"cheese":5}):
+        try:
+            print(list_to_string(ctx[dict["value"]["value"]]))
+        except:
+            print(interpret_dict(dict["value"], ctx))
+    if dict["action"] == "print_array":
+        # print(get_dict(dict["value"][0], dict["value"][1], ctx))
+        return list_to_string(get_dict(dict["value"][0], dict["value"][1], ctx))
+    if dict["action"] == "get_array":
+        if not (dict["value"][0] in ctx.keys()):
+            ctx[dict["value"][0]] = create_list(dict["value"][1])
+        return dict["value"][0], dict["value"][1]
+    if dict["action"] == "append":
+        a, b = interpret_dict(dict["value"][0], ctx)
+        d = get_dict(a, b, ctx)
+        k = [i for i in list(dict.keys()) if type(i) is int]
+        if len(k) == 0: n = 0 
+        else: n = max(k) + 1
+        d[n] = interpret_dict(dict["value"][1], ctx)
+    if dict["action"] == "inplace":
+        a, b = interpret_dict(dict["value"][0], ctx)
+        d = get_dict(a, b[:-1], ctx)
+        if type(b[-1]) is float:
+            b[-1] = int(b[-1])
+        d[b[-1]] = interpret_dict(dict["value"][1], ctx)
+
+def run_program(li, ctx):
+    # print(li)
     for i in li:
         interpret_dict(i, ctx)
 # print(process_program("print cheese. b is empty"))
@@ -652,9 +719,11 @@ def run_program(li, ctx={"cheese":5}):
 # print(interpret_dict({"action":"multiply", "value":["cheese", 1/-0.24]}))
 # print(interpret_dict({"action":"divide", "value":["cheese", 0.24]}))
 ctx = {}
-# run_program(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
+# run_program(process_program("rock cheese at 1. cheese at 2 is 5. print cheese.", ctx), ctx)
+# print(ctx)
 # print(process_program("john at 4 is 1", ctx))
-print(generate_trees("tim at 1 is 5", ctx))
+# print(generate_trees("rock tim with 1", ctx))
+# print(generate_trees("print tim at 1", ctx))
 #test more ROCK, FIX AT 
 # print(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
 
