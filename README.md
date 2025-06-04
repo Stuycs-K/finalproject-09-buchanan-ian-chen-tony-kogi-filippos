@@ -11,8 +11,8 @@ Rockstar is an esoteric language. We plan to create an interpreter using Python 
   
 ### Instructions:
 
-How does the user install/compile/run the program. (CHANGE THIS!!!!!)
-How does the user interact with this program? (CHANGE THIS!!!!!)
+The user can create a file containing rockstar code. To run the code the user can run
+`make run ARGS="<filename>"`
 
 ### Resources/ References:
 

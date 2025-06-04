@@ -1,7 +1,9 @@
 # Rockstar Interpreter 
 
 ## Introduction 
-Explain importance of esoteric languages and their uses 
+
+Esoteric languages are languages that are designed to obfuscate the meaning of the program it represents. They were created to challenge the norms
+of what a typical programming language is supposed to look like. Esolangs are kind of an example of steganography in that way. 
 
 ## What is rockstar? 
 [Rockstar Home](https://codewithrockstar.com/) 
@@ -22,19 +24,21 @@ indicative of what that line in the rockstar code is doing.
 Second, in order to produce the outcome expected from the rockstar code, these action dictionaries need to be interpreted. We loop through these action dictionaries, constructed in the first part, and produce what these 
 action dictionaries describe. 
 
-## Constructing Action Dictionaries 
+## Printing 
+print, whisper, shout 
 
-### Assigning Variables 
+## Variable Assignment 
+<var> is <exp>
+let <var> be <exp>
+put <exp> into <var>
 
-### If/Else Statements and Flow Control 
+## Poetic Numbers
+cheese is a symphonic melody. => cheese = 196
 
-### Evaluating Expressions 
-
-### Print Statements 
-
-
-## Dictionary Interpretation 
+## Arithmetic 
 
 
-## Conclusion 
+## Lists
+
+
 
