@@ -365,6 +365,11 @@ def generate_trees(statement, ctx):
         d["value"] = next_d
         return d
     
+    elif word in ("else", "otherwise"): 
+        i += len(word) + 1 
+        d = {"action": "else", "value": generate_trees(statement[i:])} 
+        return d 
+
     elif word in ("while", "until"):
         d = {"action": "loop", "value": [word, "expression"]}
         i += len(word) + 1
@@ -651,10 +656,36 @@ def interpret_dict(dict, ctx={"cheese":5}):
         return compute(dict["value"], div)
     if dict["action"] == "print":
         print(interpret_dict(dict["value"], ctx))
-    
+    if dict["action"] == "if": 
+        exp = dict["value"] 
+        return ["if", exp]
+    if dict["action"] == "end flow": 
+        count = dict["value"][1] 
+        return ["end flow", count]
+
+
 def run_program(li, ctx={"cheese":5}):
+    # if statement run parameters 
+    run = None
+    if_counter = 0 
+
+    # process dictionaries 
     for i in li:
-        interpret_dict(i, ctx)
+        if (if_counter != 0 and run == True) or if_counter == 0: 
+            output = interpret_dict(i, ctx)
+
+        # flow control processing 
+        if type(output) == list and output[0] == "if": 
+            if output[1] in FALSY: 
+                run = False 
+            else: 
+                run = True 
+            if_counter += 1 
+        if type(output) == list and output[0] == "end flow": 
+            count = output[1] 
+            if_counter = max(if_counter - count, 0) 
+        
+
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
