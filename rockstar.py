@@ -1,3 +1,4 @@
+import math
 import re
 import itertools
 
@@ -12,14 +13,14 @@ def get_word(statement, index):
        return statement
     return statement[:end]
 
-def process_program(program):
+def process_program(program, ctx):
     trees = []
     program = re.sub("(\.|\?|\!|\;|\n)","\n", program)
     for i in program.split("\n"):
         if i == "":
             continue
         i = i.strip()
-        trees.append(generate_trees(i))
+        trees.append(generate_trees(i, ctx))
     return trees
 
 def find_quotes_in_expression(expression):
@@ -44,7 +45,7 @@ def contains(string, list):
         if string.find(i) != -1:
             return True
 
-def handle_variable_names(variable, ctx=[]):
+def handle_variable_names(variable, ctx=[]  ):
     if variable in ctx:
         return handle_expression(variable)
     if " at " in variable:
@@ -86,7 +87,7 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
         try:
             return float(expression)
         except ValueError:
-            if contains(expression, ("+", "with", "plus")):
+            if contains(expression, ("+", "with ", "plus")):
                 d = {"action":"add", "value":[i.strip() for i in re.split("\+|(with)|(plus)", expression) if i is not None and i != "" and not (i in ('with', 'plus'))]}
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
@@ -106,10 +107,11 @@ def handle_expression(expression, ctx=["cheese", "the total", "the price", "the 
                 for i in range(len(d["value"])):
                     d["value"][i] = handle_expression(d["value"][i])
                 return d
-            elif expression in ctx:
-                return {"action":"get_variable", "value":expression}
+            # elif expression in ctx:
+            #     return {"action":"get_variable", "value":expression}
             else:
-                return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression.split(" ")])))
+                return {"action":"get/poetic", "value":expression}
+                # return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in expression.split(" ")])))
 
 def booleanParse(word):
     if word in FALSY:
@@ -293,7 +295,7 @@ def parseConditionalArray(tokens, ctx={"bigI": "1", "mega": 2}):
 
 # def get_next_word(statement, index, currWordLength):
 
-def generate_trees(statement):
+def generate_trees(statement, ctx):
     i = 0
     word = get_word(statement, i).lower()
     word = word.replace(",", "")
@@ -302,7 +304,7 @@ def generate_trees(statement):
         d = {"action":"print", "value":""}
 
         i += len(word) + 1
-        e = handle_expression(statement[i:], {"cheese":4})
+        e = handle_expression(statement[i:], ctx)
         d["value"] = e
         return d
 
@@ -311,7 +313,7 @@ def generate_trees(statement):
         i += len(word) + 1
 
         # replace with handle_expression()
-        d["value"][1] = handle_expression(statement[i:statement.find(" into")])
+        d["value"][1] = handle_expression(statement[i:statement.find(" into")], ctx)
 
         i = statement.find("into")
         word = get_word(statement, i)
@@ -330,8 +332,8 @@ def generate_trees(statement):
             # print(word,i)
         exp = statement[i:]
         # print(word)
-        print(exp)
-        d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp)]}
+        # print(exp)
+        d = {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(exp, ctx)]}
         return d
 
     elif word in ("if", "while", "until"):
@@ -350,33 +352,33 @@ def generate_trees(statement):
         if " like " in statement:
             pos = statement.find(" like ")
             var_name = statement[5:pos]
-            return {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(statement[pos+1:])]}
+            return {"action":"assign_variable", "value":[handle_variable_names(var_name), handle_expression(statement[pos+1:], ctx)]}
         pos = re.search("(?<=(rock )).*(at ([0-9]|.*))*(?=(( using)|( with)))", statement)
         arr_name = statement[5:pos.end() if pos is not None else len(statement)]
         d = {"action":"", "value":[handle_array(arr_name)]}
         if " using " in statement:
             d["action"] = "replace" #makes the stuff into a list and replaces at that level 
-            d["value"].append(handle_expression(statement[statement.find(" using ") + 7:]))
+            d["value"].append(handle_expression(statement[statement.find(" using ") + 7:], ctx))
         if " with " in statement:
             d["action"] = "append"
-            d["value"].append(handle_expression(statement[statement.find(" with ") + 6:]))
+            d["value"].append(handle_expression(statement[statement.find(" with ") + 6:], ctx))
         else: 
             d["action"] = "assign_array"
         return d
-    elif " at " in statement:
-        d = {}
-        arr_name = ""
-        arr_name += word
-        # print(word)
-        i += len(word) + 1
-        word = get_word(statement,i)
-        while word != "at" and i < len(statement):
-            arr_name += " " + word
-            # print(word)
-            i += len(word) + 1
-            word = get_word(statement,i)
-        if word == "at":
-            return d
+    # elif " at " in statement:
+    #     d = {}
+    #     arr_name = ""
+    #     arr_name += word
+    #     # print(word)
+    #     i += len(word) + 1
+    #     word = get_word(statement,i)
+    #     while word != "at" and i < len(statement):
+    #         arr_name += " " + word
+    #         # print(word)
+    #         i += len(word) + 1
+    #         word = get_word(statement,i)
+    #     if word == "at":
+    #         return d
 
         # i += len(word) + 1
         # word = get_word(statement,i)
@@ -384,27 +386,34 @@ def generate_trees(statement):
         # index = word
         # i += len(word) + 1
         # word = get_word(statement,i)
-        if word == "is":
-            i += len(word) + 1
-            val = statement[i:]
-        else:
-            raise Exception("\'is\' is required when using \'at\'")
+        # if word == "is":
+        #     i += len(word) + 1
+        #     val = statement[i:]
+        # else:
+        #     raise Exception("\'is\' is required when using \'at\'")
 
-        d = {"action":"assign array", "value":[arr_name,index,val]}
-        return d
+        # d = {"action":"assign array", "value":[arr_name,index,val]}
+        # return d
 
     else:
         if " is " in statement or " are " in statement or " am " in statement or " was " in statement or " were " in statement:
-            pos = re.search("( is)|( are)|( am)|( was)|( were)",statement)
-            d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()]), "value"]}
+            if " at " not in statement:
+                pos = re.search("( is)|( are)|( am)|( was)|( were)",statement)
+                d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos.start()]), "value"]}
 
-            i = pos.end()
+                i = pos.end()
 
-            word = get_word(statement, i)
+                word = get_word(statement, i)
 
-            i += len(word) + 1
-            d["value"][1] = handle_expression(statement[i:])
-            return d
+                i += len(word) + 1
+                d["value"][1] = handle_expression(statement[i:], ctx)
+                return d
+            else: 
+                pos = statement.find(" is ")
+                arr_name = statement[:pos]
+                d = {"action":"inplace", "value":[handle_array(arr_name)]}
+                d["value"].append(handle_expression(statement[pos + 4:], ctx))
+                return d
         if "'s" in statement or "'re" in statement:
             pos = re.search("('s)|('re)",statement).start()
             d = {"action":"assign_variable", "value":[handle_variable_names(statement[:pos]), "value"]}
@@ -412,23 +421,26 @@ def generate_trees(statement):
 
             word = get_word(statement, i)
             i +=len(word) +1
-            d["value"][1] = handle_expression(statement[i:])
+            d["value"][1] = handle_expression(statement[i:], ctx)
             return d
         if contains(statement, ("says", "said")):
             start = re.search("( says)|( said)",statement).start()
             end = re.search("( says)|( said)",statement).end()
             str = statement[end+1:] if statement[end] == " " else statement[end:]
-            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"')]}
+            return {"action":"assign_variable", "value":[handle_variable_names(statement[:start].strip()), handle_expression('"' + str + '"', ctx)]}
         if contains(statement, ("holds")):
             start = re.search("( holds)",statement).start()
             d = {"action":"assign_variable", "value":[handle_variable_names(statement[:start]), "value"]}
-            d["value"][1] = handle_expression(statement[start + 1:])
+            d["value"][1] = handle_expression(statement[start + 1:], ctx)
             return d
 
-# def interpret_trees(li, ctx):
-    # for i in li:
+
 
 def add(a, b):
+    if type(a) is dict:
+        a = interpret_dict(a)
+    if type(b) is dict:
+        b = interpret_dict(b)
     if type(a) is float:
             try: 
                 a = int(a)
@@ -440,8 +452,8 @@ def add(a, b):
         except:
             pass
     if type(a) is str or type(b) is str:
-        if a == True and not type(b) is int and not type(b) is float: a = "true"
-        if a == False and not type(b) is int and not type(b) is float: a = "false"
+        if a == True and not type(a) is int and not type(a) is float: a = "true"
+        if a == False and not type(a) is int and not type(a) is float: a = "false"
         if b == True and not type(b) is int and not type(b) is float: b = "true"
         if b == False and not type(b) is int and not type(b) is float: b = "false"
         if a == None: a = "null"
@@ -453,21 +465,161 @@ def add(a, b):
     if b == False and not type(b) is int and not type(b) is float: b = 0
     return a + b
 
-def adder(li):
+def minus(a, b):
+    if type(a) is dict:
+        a = interpret_dict(a)
+    if type(b) is dict:
+        b = interpret_dict(b)
+    if type(a) is float:
+            try: 
+                a = int(a)
+            except:
+                pass
+    if type(b) is float:
+        try: 
+            b = int(b)
+        except:
+            pass
+    if (type(a) is int or type(a) is float) and (type(b) is int or type(b) is float):
+        return a - b
+    if type(a) is str or type(b) is str: 
+        if a == True and not type(a) is int and not type(a) is float: a = "true"
+        if a == False and not type(a) is int and not type(a) is float: a = "false"
+        if b == True and not type(b) is int and not type(b) is float: b = "true"
+        if b == False and not type(b) is int and not type(b) is float: b = "false"
+        a = str(a)
+        b = str(b)
+        index = len(b)
+        if a[-1 * index:] == b:
+            return a[:-1*index]
+        if a == "true":
+            return True
+        if a == "false":
+            return False
+    if (type(a) is bool or a is None) or (type(b) is bool or b is None):
+        if a == True: a = 1
+        if a == False or a == None: b = 0
+        if b == True: b = 1
+        if b == False or b == None: b = 0
+        return a - b
+    
+def mult(a, b):
+    if type(a) is dict:
+        a = interpret_dict(a)
+    if type(b) is dict:
+        b = interpret_dict(b)
+    if a is None or (a == False and type(a) is bool): 
+        a = 0
+    if b is None or (b == False and type(b) is bool): 
+        b = 0
+    if (type(a) is float or type(a) is int) and (type(b) is float or type(b) is int):
+        return a * b
+    if type(a) is str:
+        if b < 0:
+            a = a[::-1]
+            b *= -1
+        whole = math.floor(b)
+        remainder = b - whole
+        out = a * whole
+        index = math.ceil(len(a) * remainder)
+        return out + a[index:]
+    if type(b) is str: 
+        if a < 0:
+            b = b[::-1]
+            a *= -1
+        whole = math.floor(a)
+        remainder = a - whole
+        out = b * whole
+        index = math.ceil(len(b) * remainder)
+        return out + b[index:]
+
+def div(a, b):
+    if type(a) is dict:
+        a = interpret_dict(a)
+    if type(b) is dict:
+        b = interpret_dict(b)
+    if type(b) is bool and b == True:
+        b = 1
+    if type(b) is str:
+        if a == True and not type(a) is int and not type(a) is float: a = "true"
+        if a == False and not type(a) is int and not type(a) is float: a = "false"
+        if b == True and not type(b) is int and not type(b) is float: b = "true"
+        if b == False and not type(b) is int and not type(b) is float: b = "false"
+        a = str(a)
+        count = 0
+        for i in range(len(a)):
+            if a[i:i+len(b)] == b:
+                count += 1
+        return count
+    if type(b) is float or type(b) is int:
+        if a is None or (type(a) is bool and a == False):
+            a = 0
+        if type(a) is bool and a == True:
+            a = 1
+        if type(a) is bool:
+            return a / (b * 1.)
+        if type(a) is str:
+            return mult(a, 1/(b * 1.))
+
+
+
+def compute(li, func):
     out = li[0]
     for i in range(1, len(li)):
-        out = add(out, li[i])
+        out = func(out, li[i])
     return out
-            
-def interpret_dict(dict):
+
+def interpret_dict(dict, ctx={"cheese":5}):
     if type(dict) is float or type(dict) is int or type(dict) is str:
-        return 
+        if type(dict) is float: 
+            try: 
+                dict = int(dict)
+            except: 
+                pass
+        return dict
+    if dict["action"] == "get/poetic":
+        if dict["value"] in ctx:
+            return ctx[dict["value"]]
+        return "".join(list(itertools.chain.from_iterable([[str(len(i.replace("'", "").replace(".", "")) % 10), "."] if "." in i else str(len(i.replace("'", "")) % 10) for i in dict["value"].split(" ")])))
+    if dict["action"] == "assign_variable":
+        value = interpret_dict(dict["value"][1], ctx)
+        # print(value, 1)
+        var = dict["value"][0]
+        if var in ctx: 
+            if type(value) is str:
+                if value[0] == "+":
+                    # print(add(ctx[var], handle_expression(value[1:])))
+                    ctx[var] = add(ctx[var], handle_expression(value[1:]))
+                if value[0] == "-":
+                    ctx[var] = minus(ctx[var], handle_expression(value[1:]))
+                if value[0] == "*":
+                    ctx[var] = mult(ctx[var], handle_expression(value[1:]))
+                if value[0] == "/":
+                    ctx[var] = div(ctx[var], handle_expression(value[1:]))
+                return
+        ctx[dict["value"][0]] = value
     if dict["action"] == "add":
-        return adder(dict["value"])
-    if dict["action"] == "subtract":
-        
-
-
+        if len(dict["value"]) == 1:
+            return "+" + str(dict["value"][0])
+        return compute(dict["value"], add)
+    if dict["action"] == "minus":
+        if len(dict["value"]) == 1:
+            return "-" + str(dict["value"][0])
+        return compute(dict["value"], minus)
+    if dict["action"] == "multiply":
+        if len(dict["value"]) == 1:
+            return "*" + str(dict["value"][0])
+        return compute(dict["value"], mult)
+    if dict["action"] == "divide":
+        if len(dict["value"]) == 1:
+            return "/" + str(dict["value"][0])
+        return compute(dict["value"], div)
+    if dict["action"] == "print":
+        print(interpret_dict(dict["value"], ctx))
+    
+def run_program(li, ctx={"cheese":5}):
+    for i in li:
+        interpret_dict(i, ctx)
 # print(process_program("print cheese. b is empty"))
 # float("sada")
 
@@ -494,8 +646,19 @@ def interpret_dict(dict):
 # print(generate_trees("rock jimmy at 3 with 1,2, \"cheese\""))
 # print(generate_trees("jimmy is dying"))
 
-print(process_program("print \"cheese\". cheese is 5. rock cheese. fries is 5 + 5 + 2"))
-print(interpret_dict({"action":"add", "value":[None, 1, 2.0, "cheese", True]}))
+# print(process_program("print \"cheese\". cheese is 5. rock cheese. fries is 5 + 5 + 2"))
+# print(interpret_dict({"action":"add", "value":[None, 1, 2.0, "cheese", True]}))
+# print(generate_trees("he is over 5"))
+# print(interpret_dict({"action":"multiply", "value":["cheese", 1/-0.24]}))
+# print(interpret_dict({"action":"divide", "value":["cheese", 0.24]}))
+ctx = {}
+# run_program(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
+# print(process_program("john at 4 is 1", ctx))
+print(generate_trees("tim at 1 is 5", ctx))
+#test more ROCK, FIX AT 
+# print(process_program("rock cheese like aces. cheese is with 4. print cheese.", ctx))
+
+# print(parseConditionalArray(conditionalToArray("bigI and \"cheese\"", 0)))
 #MAKE CHEESE CALL THE VARIABLE
 # print(handle_array("jimmy"))
 # print(conditionalToArray("me and you or my dream", 0))
