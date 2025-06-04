@@ -29,3 +29,6 @@ I finished poetic numbers and started working on poetic strings
 
 ### 2025-05-02 Worked on arrays
 I allowed for array assignment nested arrays and other "rock" features
+
+### 2025-05-03 Finish
+Wrote an interpreter for everything and fixed some loose ends.

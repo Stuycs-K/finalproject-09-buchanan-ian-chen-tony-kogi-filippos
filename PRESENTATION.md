@@ -36,9 +36,13 @@ put <exp> into <var>
 cheese is a symphonic melody. => cheese = 196
 
 ## Arithmetic 
+in place arithmetic
+rockstar has some cool features for arithmetic
 
+## Conditionals
+if conditional print stuff
 
 ## Lists
-
+the main interface for using lists is rock 
 
 
