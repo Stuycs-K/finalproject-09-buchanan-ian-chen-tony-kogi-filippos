@@ -703,10 +703,7 @@ def interpret_dict(dict, ctx):
             return "/" + str(dict["value"][0])
         return compute(dict["value"], div)
     if dict["action"] == "print":
-        if list_to_string(ctx[dict["value"]["value"]])[-1] == ",":
-            print(list_to_string(ctx[dict["value"]["value"]]))
-        else:
-            print(interpret_dict(dict["value"], ctx))
+        print(interpret_dict(dict["value"], ctx))
     if dict["action"] == "print_array":
         # print(get_dict(dict["value"][0], dict["value"][1], ctx))
         return list_to_string(get_dict(dict["value"][0], dict["value"][1], ctx))
