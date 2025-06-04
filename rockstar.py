@@ -216,6 +216,10 @@ def conditionalToArray(statement, i, ctx):
             else: 
                 if word[0] == "\"" and word[-1] == "\"": 
                     tokens.append(word)
+                elif word.lower() == "true": 
+                    tokens.append(True) 
+                elif word.lower() == "false": 
+                    tokens.append(False) 
                 else: 
                     tokens.append(int(word)) 
     return tokens
@@ -723,7 +727,15 @@ def interpret_dict(dict, ctx):
         if type(b[-1]) is float:
             b[-1] = int(b[-1])
         d[b[-1]] = interpret_dict(dict["value"][1], ctx)
-
+    if dict["action"] == "if": 
+        exp = dict["value"] 
+        return ["if", exp]
+    if dict["action"] == "else": 
+        tree = dict["value"] 
+        return ["else", tree] 
+    if dict["action"] == "end flow": 
+        count = dict["value"][1] 
+        return ["end flow", count]
 
 
 def run_program(li, ctx={"cheese":5}):
@@ -736,7 +748,7 @@ def run_program(li, ctx={"cheese":5}):
     for i in li:
         if (if_counter != 0 and run == True) or if_counter == 0: 
             output = interpret_dict(i, ctx)
-        else: 
+        elif (if_counter != 0 and run == False): 
             else_run = True 
             if_counter = if_counter - 1
 
@@ -746,6 +758,7 @@ def run_program(li, ctx={"cheese":5}):
                 tree = output[1] 
                 interpret_dict(tree, ctx)
         if type(output) == list and output[0] == "if": 
+            if_counter += 1 
             if output[1] in FALSY: 
                 run = False 
             else: 
@@ -758,6 +771,8 @@ def run_program(li, ctx={"cheese":5}):
 out = ""
 with open(sys.argv[1], "r") as f:
     out = f.read()
-    
+
+
 ctx = {}
 run_program(process_program(out, ctx), ctx)
+
