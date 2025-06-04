@@ -40,3 +40,5 @@ Finished testing and debugging expression evaluation.
 Implemented use of context dictionary in functions to refer to previously defined variables. 
 if/else statements written up in generate_trees() function. 
 
+Flow control and parsing expressions for nested if/else statements in final interpretation of dictionary action trees. 
+

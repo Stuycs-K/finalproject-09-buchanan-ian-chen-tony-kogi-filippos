@@ -659,6 +659,9 @@ def interpret_dict(dict, ctx={"cheese":5}):
     if dict["action"] == "if": 
         exp = dict["value"] 
         return ["if", exp]
+    if dict["action"] == "else": 
+        tree = dict["value"] 
+        return ["else", tree] 
     if dict["action"] == "end flow": 
         count = dict["value"][1] 
         return ["end flow", count]
@@ -666,6 +669,7 @@ def interpret_dict(dict, ctx={"cheese":5}):
 
 def run_program(li, ctx={"cheese":5}):
     # if statement run parameters 
+    else_run = False 
     run = None
     if_counter = 0 
 
@@ -673,8 +677,15 @@ def run_program(li, ctx={"cheese":5}):
     for i in li:
         if (if_counter != 0 and run == True) or if_counter == 0: 
             output = interpret_dict(i, ctx)
+        else: 
+            else_run = True 
+            if_counter = if_counter - 1
 
         # flow control processing 
+        if type(output) == list and output[0] == "else": 
+            if else_run == True: 
+                tree = output[1] 
+                interpret_dict(tree, ctx)
         if type(output) == list and output[0] == "if": 
             if output[1] in FALSY: 
                 run = False 
